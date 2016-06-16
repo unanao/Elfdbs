@@ -1,0 +1,28 @@
+<html>
+<head><title> ELF Database System </title> </head>
+<body>
+	<H1><center><font color="blue">ELF Database System </font></center></H1>
+	<h3><font color="blue">1 First you should Upload the file to the server:</font><h3>
+	   <font color="green"> <h4>Attention:You must rename your binary file "elfdbs"</h4></font>
+
+	<form method="post" enctype="multipart/form-data" action="/cgi-bin/up_load/test.cgi">
+
+	<p>File Upload:<input type="file" name="file" value=""> (Select Your Local File)<p>
+
+	<input type="submit" name= "send" value="send"> <input type="reset" value="cancel">
+
+	</form> 
+	<h3><font color="blue">2 If you want to display the the elf's program and section's:</h3></font><br>
+	<a href=/cgi-bin/elf_display/elf_display.cgi><font color="red">Click here to Display</font></a>
+	<br>
+	
+	<h3><font color="blue">3 If you want to reduce your elf file:</font></h3>
+	<a href=/cgi-bin/elf_store/store_binary.cgi><font color="red">Click here to reduce</font></a>
+	<br>
+	
+	<h3><font color="blue">4 If you want to download your reduced elf file:</font></h3>
+	 <h3><font color="green">Attention:after reduced your file was renamed "elfdbs_reduced"</font></h3>
+	<a href="ftp://219.246.81.63/elfdbs_reduced"><font color="red">Click here to download</font></a>
+
+	</body>
+</html>

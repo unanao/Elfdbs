@@ -1,0 +1,85 @@
+* May 2001: version 2.0a
+
+	Two small bug fixes, reported to me by people who downloaded
+	version 2.0.
+
+* April 2001: version 2.0
+
+	I began spelunking in the system header files <elf.h> and
+	<linux/elf.h> again, and discovered a large number of new
+	definitions. I realized that the ELF standard could be going
+	through major changes, and that having a version number is really
+	necessary.
+
+	elftoc updated to understand some of these new additions, and
+	elsewhere restructured so as to make it easier to update it again
+	once I understand the rest of them.
+
+	Fixes for elftoc bugs that I noticed during the rewrite.
+
+	elfls updated similarly to elftoc.
+
+	Minor rewrite of sstrip to make the code more airtight and
+	aesthetically pleasing.
+	
+* March 2001
+
+	rebind added to ELF Kickers.
+
+	date and snake added to the tiny collection.
+
+	cat removed from the tiny collection (too uninteresting).
+
+	Cleaned up all tiny programs and made them more stylistically
+	consistent.
+
+	Minor bug fix in elftoc.
+
+	Documentation cleanups.
+
+* February 2001
+
+	Five of the tiny programs did not work under 2.2.17 and later 2.2
+	kernels due to a change in how Linux checks the ELF header.
+	(Thanks to Francois-Rene Rideau, who pointed this out to me. Oddly
+	enough, this new restriction does not seem to have made it into
+	the 2.4.0 kernel. I am unsure if the change is confined to the 2.2
+	versions, or if it will resurface in a later kernel.) I succeeded
+	in fixing two of the programs without sacrificing compatibility
+	with 2.0 kernels or increasing the size. For the other three, I
+	added new versions specifically for 2.2.17 (et al).
+
+* January 2001
+
+	keepalive added to the tiny collection.
+
+	Removed -W option from the Makefile for ebfc (I thought I had done
+	this already).
+
+	New feature added to ebfc -- namely, the acceptance of compressed
+	source files -- just for the heck of it.
+
+	This file added.
+
+* August 2000
+	
+	After installing a 2.2 kernel, I discovered that changes to the
+	system header files and a new warning in gcc 2.95.2 caused several
+	of the programs to generate numerous compiler warnings and errors.
+	The errors were caused by a benign redefinition of a macro, and
+	were suppressed by changing the inclusion order of the system
+	header files in question. The warnings were due to my taking
+	advantage of of the standard feature of omitting trailing
+	initializers in the definition of a structure, and were suppressed
+	by omitting the -W gcc option in the Makefiles, leaving just
+	-Wall.
+
+	ls added to the tiny collection.
+
+	Bug fixes and minor improvements to the documentation.
+
+* July 1999
+	
+	Initial release. Main programs: elfls, elftoc, sstrip, ebfc. In
+	the tiny collection: true/false, hello, fgconsole, hexdump, cat,
+	factor.

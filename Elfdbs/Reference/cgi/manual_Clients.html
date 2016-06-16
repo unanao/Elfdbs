@@ -1,0 +1,2762 @@
+<html><head>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=GB2312">
+<meta http-equiv="Content-Type" content="text/html; charset=GB2312"><meta http-equiv="Content-Language" content="zh-CN">
+<meta name="robots" content="all">
+<meta name="googlebot" content="index, follow">
+<meta name="generator" content="MSHTML 6.00.2900.2604">
+<meta name="author" content="网页陶吧-龙犊(luokel@chinabyte.com)">
+<meta name="Copyright" content="天极Yesky-全球中文IT第一门户">
+<meta name="keywords" content="mysql 下载,php mysql,mysql front,apache php mysql,mysql 教程,mysql 安装,jsp mysql,mysql odbc,mysql命令,mysql中文参考手册,linux mysql,mysql 手册,mysql jdbc,mysql 备份,mysql 5.0 下载,mysql 客户端,mysql 乱码,mysql 5.0,mysql 配置,mysql 数据类型,ems mysql,mysql 管理工具,asp mysql,mysql驱动,mysql中文版下载,mysql 存储过程,mysql 管理,mysql 函数,网页陶吧">
+<style type="text/css">
+<!--
+
+.p5{ border: 1px solid rgb(146,201,201) }
+.a{color:green;font-size:12px;}
+
+-->
+</style>
+<title>MySQL中文参考手册- 20 MySQL客户工具和API</title>
+</head><body class="p4" bgcolor="#ffffff" text="#000000" vlink="#7030b0" link="#101090">
+
+
+
+
+
+<h1><img src="manual_Clients%20%E7%9A%84%E6%96%87%E4%BB%B6/mysql-logo.gif" alt="mysql-logo.gif (3082 bytes)" width="127" height="60"><font color="#ff0000">MySQL中文参考手册</font></h1>
+
+<p>翻译：<a href="mailto:clyan@sohu.com">晏子</a>(yanzi) 
+&#160;&#160;&#160;&#160;&#160; 主页：<a href="http://linuxdn.yeah.net/">http://linuxdb.yeah.net</a></p>
+
+<hr>
+
+<p><a href="http://www.yesky.com/imagesnew/software/mysql/manual_Introduction.html">第一章</a>, <a href="http://www.yesky.com/imagesnew/software/mysql/manual_Common_problems.html">前一章</a>, 
+<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Comparisons.html">下一章</a>, <a href="http://www.yesky.com/imagesnew/software/mysql/manual_Concept_Index.html">最后一章</a> </p>
+
+<hr>
+
+<h1><a name="Clients" style="">20 MySQL客户工具和API</a></h1>
+
+<h2><a name="C" style="">20.1 MySQL C API</a></h2>
+
+<p>C API代码是随<strong>MySQL</strong>分发的，它被包含在<code>mysqlclient</code>库且允许C程序存取一个数据库。</p>
+
+<p>在 MySQL源代码分发中的很多客户是用C编写的。如果你正在寻找演示怎样使用C 
+API的例子，看一下这些客户程序。</p>
+
+<p>大多数其他客户 API(除了Java的所有)都使用<code>mysqlclient</code>库与<strong>MySQL</strong>服务器通信。这意味着，例如，你能利用很多被其他客户程序使用的同一环境变量，因为他们从库中引用。对这些变量的一张表，见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Tools.html#Programs">12.1 不同的MySQL程序的概述</a>。 </p>
+
+<p>客户有一个最大通讯缓冲区大小。初始分配的缓冲区大小(16K字节) 
+自动地增加到最大尺寸(缺省的最大值是24M)。因为缓冲区大小只是按保证需求而被增加，简单地增加缺省的最大限制并不造成更多被消耗。该尺寸检查主要是一个对错误的查询和通讯包的检查。</p>
+
+<p>通讯缓冲区必须足够大以便一个单独的SQL语句(对客户-服务器传输)和一行返回的数据(对服务器-客户传输)。每个线程的通讯缓冲区被动态扩大到最大限制来处理任何查询或行。例如，如果你包含大到16M数据的<code>BLOB</code>值，你必须有一个至少16M通讯缓冲区限制(在服务器和客户两端)。客户的缺省最大值是24M，但是在服务器端的缺省最大值是1M。你可以在服务器启动时通过改变<code>max_allowed_packet</code>参数的值来改变它。见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Performance.html#Server_parameters">10.2.3 调节服务器参数</a>。</p>
+
+<p><strong>MySQL</strong>服务器在每个查询后缩小每个通讯缓冲区到<code>net_buffer_length</code>个字节。对客户，与一个连接相关的缓冲区的大小没被减少，直到连接被关闭，在此时客户内存被回收。 
+</p>
+
+<p>如果你用线程的编程，你应该用<code>--with-thread-safe-client</code>编译<strong>MySQL</strong> 
+C API，这将使C API线程对每个连接更安全。你可以让2个线程共享相同的连接，只要如果你做下列事情： 
+
+</p><dl compact="manual_Performance.html#Server_parameters">
+  <dd>两个线程不能同时在同一个连接上发送查询到<strong>MySQL</strong>。特别是你必须保证在一个<code>mysql_query()</code>和<code>mysql_store_result()</code>之间没有其他线程正在使用同一个连接。 
+  </dd>
+  <dd>许多线程能存取用<code>mysql_store_result()</code>检索出来的不同结果集合。</dd>
+  <dd>如果你使用<code>mysql_use_result</code>，你必须保证没有其他线程在同一个连接上正在询问任何东西，直到结果集合被关闭。 
+  </dd>
+</dl>
+
+<h2><a name="C_API_datatypes" style="">20.2 C API数据类型</a></h2>
+
+<dl compact="C_API_datatypes">
+  <dt><code>MYSQL</code> </dt>
+  <dd><a name="IDX716"></a>这个结构表示对一个数据库连接的句柄，它被用于几乎所有的<strong>MySQL</strong>函数。 
+    <a name="IDX717"></a> </dd>
+  <dt><code>MYSQL_RES</code> </dt>
+  <dd>这个结构代表返回行的一个查询的(<code>SELECT</code>, <code>SHOW</code>, <code>DESCRIBE</code>, 
+    <code>EXPLAIN</code>)的结果。从查询返回的信息在本章下文称为<em>结果集合</em>。</dd>
+  <dt><code>MYSQL_ROW</code> </dt>
+  <dd>这是一个行数据的类型安全(type-safe)的表示。当前它实现为一个计数字节的字符串数组。（如果字段值可能包含二进制数据，你不能将这些视为空终止串，因为这样的值可以在内部包含空字节) 
+    行通过调用<code>mysql_fetch_row()</code>获得。 <a name="IDX719"></a> </dd>
+  <dt><code>MYSQL_FIELD</code> </dt>
+  <dd>这个结构包含字段信息，例如字段名、类型和大小。其成员在下面更详细地描述。你可以通过重复调用<code>mysql_fetch_field()</code>对每一列获得<code>MYSQL_FIELD</code>结构。字段值不是这个结构的部分；他们被包含在一个<code>MYSQL_ROW</code>结构中。</dd>
+  <dt><code>MYSQL_FIELD_OFFSET</code> </dt>
+  <dd>这是一个相对一个<strong>MySQL</strong>字段表的偏移量的类型安全的表示。（由<code>mysql_field_seek()</code>使用。) 
+    偏移量是在一行以内的字段编号，从0开始。<a name="IDX721"></a> <a name="IDX722"></a> </dd>
+  <dt><code>my_ulonglong</code> </dt>
+  <dd>该类型用于行编号和<code>mysql_affected_rows()</code>、<code>mysql_num_rows()</code>和<code>mysql_insert_id()</code>。这种类型提供<code>0</code>到<code>1.84e19</code>的一个范围。在一些系统上，试图打印类型<code>my_ulonglong</code>的值将不工作。为了打印出这样的值，将它变换到<code>unsigned 
+    long</code>并且使用一个<code>%lu</code>打印格式。例如：<pre>printf (Number of rows: %lu\n", (unsigned long) mysql_num_rows(result));
+</pre>
+  </dd>
+</dl>
+
+<p><code>MYSQL_FIELD</code>结构包含列在下面的成员： 
+
+</p><dl compact="IDX722">
+  <dt><code>char * name</code> </dt>
+  <dd>字段名，是一个空结尾的字符串。</dd>
+  <dt><code>char * table</code> </dt>
+  <dd>包含该字段的表的名字，如果它不是可计算的字段。对可计算的字段，<code>table</code>值是一个空字符串。</dd>
+  <dt><code>char * def</code> </dt>
+  <dd>这字段的缺省值，是一个空结尾的字符串。只要你使用，只有你使用<code>mysql_list_fields()</code>才可设置它。</dd>
+  <dt><code>enum enum_field_types type</code> </dt>
+  <dd>字段类型。<code>type</code>值可以是下列之一：<table nosave="#101090" class="p4" border="1" width="100%">
+      <tbody><tr>
+        <td><strong>类型值</strong> </td>
+        <td><strong>类型含义</strong></td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_TINY</code> </td>
+        <td><code>TINYINT</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_SHORT</code> </td>
+        <td><code>SMALLINT</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_LONG</code> </td>
+        <td><code>INTEGER</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_INT24</code> </td>
+        <td><code>MEDIUMINT</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_LONGLONG</code> </td>
+        <td><code>BIGINT</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_DECIMAL</code> </td>
+        <td><code>DECIMAL</code>或<code>NUMERIC</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_FLOAT</code> </td>
+        <td><code>FLOAT</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_DOUBLE</code> </td>
+        <td><code>DOUBLE</code>或<code>REAL</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_TIMESTAMP</code> </td>
+        <td><code>TIMESTAMP</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_DATE</code> </td>
+        <td><code>DATE</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_TIME</code> </td>
+        <td><code>TIME</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_DATETIME</code> </td>
+        <td><code>DATETIME</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_YEAR</code> </td>
+        <td><code>YEAR</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_STRING</code> </td>
+        <td>字符串(<code>CHAR</code>或<code>VARCHAR</code>)字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_BLOB</code> </td>
+        <td><code>BLOB</code>或<code>TEXT</code>字段(使用<code>max_length</code>决定最大长度）</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_SET</code> </td>
+        <td><code>SET</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_ENUM</code> </td>
+        <td><code>ENUM</code>字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_NULL</code> </td>
+        <td><code>NULL</code>- 类型字段</td>
+      </tr>
+      <tr>
+        <td><code>FIELD_TYPE_CHAR</code> </td>
+        <td>不推荐；使用<code>FIELD_TYPE_TINY</code>代替</td>
+      </tr>
+    </tbody></table>
+    <p>你可以使用<code>IS_NUM()</code>宏来测试字段是否有一种数字类型。将<code>type</code>值传给<code>IS_NUM()</code>并且如果字段是数字的，它将计算为TRUE：</p>
+    <pre>if (IS_NUM(field-&gt;type))
+    printf("Field is numeric\n");
+</pre>
+  </dd>
+  <dt><code>unsigned int length</code> </dt>
+  <dd>字段宽度，在表定义中指定。</dd>
+  <dt><code>unsigned int max_length</code> </dt>
+  <dd>对结果集合的字段的最大宽度(对实际在结果集合中的行的最长字段值的长度)。如果你使用<code>mysql_store_result()</code>或<code>mysql_list_fields()</code>，这包含字段最大长度。如果你使用<code>mysql_use_result()</code>，这个变量的值是零。</dd>
+  <dt><code>unsigned int flags</code> </dt>
+  <dd>字段的不同位标志。<code>flags</code>值可以是零个或多个下列位设置：<table nosave="#101090" class="p4" border="1" width="100%">
+      <tbody><tr>
+        <td><strong>标志值</strong> </td>
+        <td><strong>标志含义</strong></td>
+      </tr>
+      <tr>
+        <td><code>NOT_NULL_FLAG</code> </td>
+        <td>字段不能是<code>NULL</code> </td>
+      </tr>
+      <tr>
+        <td><code>PRI_KEY_FLAG</code> </td>
+        <td>字段是一个主键的一部分</td>
+      </tr>
+      <tr>
+        <td><code>UNIQUE_KEY_FLAG</code> </td>
+        <td>字段是一个唯一键的一部分</td>
+      </tr>
+      <tr>
+        <td><code>MULTIPLE_KEY_FLAG</code> </td>
+        <td>字段是一个非唯一键的一部分。 </td>
+      </tr>
+      <tr>
+        <td><code>UNSIGNED_FLAG</code> </td>
+        <td>字段有<code>UNSIGNED</code>属性</td>
+      </tr>
+      <tr>
+        <td><code>ZEROFILL_FLAG</code> </td>
+        <td>字段有<code>ZEROFILL</code>属性</td>
+      </tr>
+      <tr>
+        <td><code>BINARY_FLAG</code> </td>
+        <td>字段有<code>BINARY</code>属性</td>
+      </tr>
+      <tr>
+        <td><code>AUTO_INCREMENT_FLAG</code> </td>
+        <td>字段有<code>AUTO_INCREMENT</code>属性</td>
+      </tr>
+      <tr>
+        <td><code>ENUM_FLAG</code> </td>
+        <td>字段是一个<code>ENUM</code>（不推荐）</td>
+      </tr>
+      <tr>
+        <td><code>BLOB_FLAG</code> </td>
+        <td>字段是一个<code>BLOB</code>或<code>TEXT</code>（不推荐）</td>
+      </tr>
+      <tr>
+        <td><code>TIMESTAMP_FLAG</code> </td>
+        <td>字段是一个<code>TIMESTAMP</code>（不推荐）</td>
+      </tr>
+    </tbody></table>
+    <p><code>BLOB_FLAG</code>、<code>ENUM_FLAG</code>和<code>TIMESTAMP_FLAG</code>标志的使用是不推荐的，因为他们指出字段的类型而非它的类型属性。对<code>FIELD_TYPE_BLOB</code>、<code>FIELD_TYPE_ENUM</code>或<code>FIELD_TYPE_TIMESTAMP</code>，最好是测试<code>field-&gt;type</code>。下面例子演示了一个典型的<code>flags</code>值用法：</p>
+    <pre>if (field-&gt;flags &amp; NOT_NULL_FLAG)
+    printf("Field can't be null\n");
+</pre>
+    <p>你可以使用下列方便的宏决来确定<code>flags</code>值的布尔状态：</p>
+    <table nosave="#101090" class="p4" border="1" width="100%">
+      <tbody><tr>
+        <td><code>IS_NOT_NULL(flags)</code> </td>
+        <td>真，如果该字段被定义为<code>NOT NULL</code> </td>
+      </tr>
+      <tr>
+        <td><code>IS_PRI_KEY(flags)</code> </td>
+        <td>真，如果该字段是一个主键</td>
+      </tr>
+      <tr>
+        <td><code>IS_BLOB(flags)</code> </td>
+        <td>真，如果该字段是一个<code>BLOB</code>或<code>TEXT</code>（不推荐；相反测试<code>field-&gt;type</code>）</td>
+      </tr>
+    </tbody></table>
+  </dd>
+  <dt><code>unsigned int decimals</code> </dt>
+  <dd>对数字字段的小数位数。</dd>
+</dl>
+
+<h2><a name="C_API_function_overview" style="">20.3 
+C API函数概述</a></h2>
+
+<p>在 C API 中可用的函数列在下面，并且在下一节更详细地描述。见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Clients.html#C_API_functions">20.4 C API函数描述</a>。</p>
+
+<table nosave="#101090" class="p4" border="1" width="100%">
+  <tbody><tr>
+    <td><strong>mysql_affected_rows()</strong> </td>
+    <td>返回被最新的<code>UPDATE</code>, <code>DELETE</code>或<code>INSERT</code>查询影响的行数。</td>
+  </tr>
+  <tr>
+    <td><strong>mysql_close()</strong> </td>
+    <td>关闭一个服务器连接。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_connect()</strong> </td>
+    <td>连接一个<strong>MySQL</strong>服务器。该函数不推荐；使用<code>mysql_real_connect()</code>代替。 
+    </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_change_user()</strong> </td>
+    <td>改变在一个打开的连接上的用户和数据库。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_create_db()</strong> </td>
+    <td>创建一个数据库。该函数不推荐；而使用SQL命令<code>CREATE DATABASE</code>。</td>
+  </tr>
+  <tr>
+    <td><strong>mysql_data_seek()</strong></td>
+    <td>在一个查询结果集合中搜寻一任意行。</td>
+  </tr>
+  <tr>
+    <td><strong>mysql_debug()</strong></td>
+    <td>用给定字符串做一个<code>DBUG_PUSH</code>。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_drop_db()</strong></td>
+    <td>抛弃一个数据库。该函数不推荐；而使用SQL命令<code>DROP DATABASE</code>。 
+    </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_dump_debug_info()</strong></td>
+    <td>让服务器将调试信息写入日志文件。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_eof()</strong></td>
+    <td>确定是否已经读到一个结果集合的最后一行。这功能被反对; <code>mysql_errno()</code>或<code>mysql_error()</code>可以相反被使用。 
+    </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_errno()</strong></td>
+    <td>返回最近被调用的<strong>MySQL</strong>函数的出错编号。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_error()</strong></td>
+    <td>返回最近被调用的<strong>MySQL</strong>函数的出错消息。</td>
+  </tr>
+  <tr>
+    <td><strong>mysql_escape_string()</strong> </td>
+    <td>用在SQL语句中的字符串的转义特殊字符。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_fetch_field()</strong></td>
+    <td>返回下一个表字段的类型。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_fetch_field_direct ()</strong></td>
+    <td>返回一个表字段的类型，给出一个字段编号。</td>
+  </tr>
+  <tr>
+    <td><strong>mysql_fetch_fields()</strong></td>
+    <td>返回一个所有字段结构的数组。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_fetch_lengths()</strong></td>
+    <td>返回当前行中所有列的长度。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_fetch_row()</strong></td>
+    <td>从结果集合中取得下一行。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_field_seek()</strong></td>
+    <td>把列光标放在一个指定的列上。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_field_count()</strong></td>
+    <td>返回最近查询的结果列的数量。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_field_tell()</strong></td>
+    <td>返回用于最后一个<code>mysql_fetch_field()</code>的字段光标的位置。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_free_result()</strong></td>
+    <td>释放一个结果集合使用的内存。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_get_client_info()</strong></td>
+    <td>返回客户版本信息。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_get_host_info()</strong> </td>
+    <td>返回一个描述连接的字符串。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_get_proto_info()</strong></td>
+    <td>返回连接使用的协议版本。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_get_server_info()</strong></td>
+    <td>返回服务器版本号。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_info()</strong> </td>
+    <td>返回关于最近执行得查询的信息。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_init()</strong></td>
+    <td>获得或初始化一个<code>MYSQL</code>结构。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_insert_id()</strong></td>
+    <td>返回有前一个查询为一个<code>AUTO_INCREMENT</code>列生成的ID。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_kill()</strong></td>
+    <td>杀死一个给定的线程。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_list_dbs()</strong></td>
+    <td>返回匹配一个简单的正则表达式的数据库名。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_list_fields()</strong></td>
+    <td>返回匹配一个简单的正则表达式的列名。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_list_processes()</strong></td>
+    <td>返回当前服务器线程的一张表。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_list_tables()</strong></td>
+    <td>返回匹配一个简单的正则表达式的表名。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_num_fields()</strong></td>
+    <td>返回一个结果集合重的列的数量。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_num_rows()</strong></td>
+    <td>返回一个结果集合中的行的数量。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_options()</strong></td>
+    <td>设置对<code>mysql_connect()</code>的连接选项。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_ping()</strong></td>
+    <td>检查对服务器的连接是否正在工作，必要时重新连接。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_query()</strong></td>
+    <td>执行指定为一个空结尾的字符串的SQL查询。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_real_connect()</strong></td>
+    <td>连接一个<strong>MySQL</strong>服务器。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_real_query()</strong></td>
+    <td>执行指定为带计数的字符串的SQL查询。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_reload()</strong></td>
+    <td>告诉服务器重装授权表。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_row_seek()</strong></td>
+    <td>搜索在结果集合中的行，使用从<code>mysql_row_tell()</code>返回的值。 
+    </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_row_tell()</strong></td>
+    <td>返回行光标位置。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_select_db()</strong></td>
+    <td>连接一个数据库。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_shutdown()</strong></td>
+    <td>关掉数据库服务器。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_stat()</strong></td>
+    <td>返回作为字符串的服务器状态。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_store_result()</strong></td>
+    <td>检索一个完整的结果集合给客户。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_thread_id()</strong></td>
+    <td>返回当前线程的ID。 </td>
+  </tr>
+  <tr>
+    <td><strong>mysql_use_result()</strong></td>
+    <td>初始化一个一行一行地结果集合的检索。 </td>
+  </tr>
+</tbody></table>
+
+<p>为了连接服务器，调用<code>mysql_init()</code>以初始化一个连接处理器，然后用该处理器调用<code>mysql_real_connect()</code>(还有其他信息例如主机名、用户名和口令)。当你用该连接完成工作后，调用<code>mysql_close()</code>终止它。</p>
+
+<p>当一个连接活跃时，客户可以用<code>mysql_query()</code>或<code>mysql_real_query()</code>将SQL查询发送到服务器。两者的差别是<code>mysql_query()</code>期望查询作为一个空结尾的字符串来指定而<code>mysql_real_query()</code>期望一个计数的字符串。如果字符串包含二进制数据(它可以包括空字节)，你必须使用<code>mysql_real_query()</code>。</p>
+
+<p>对与每个非--<code>SELECT</code>查询(例如，<code>INSERT</code>、<code>UPDATE</code>、<code>DELETE</code>等)，你可以调用<code>mysql_affected_rows()</code>知道有多少行受到影响(改变)。</p>
+
+<p>对于<code>SELECT</code>查询，你作为一个结果集合来检索选择的行。（注意一些语句是类<code>SELECT</code>的，他们返回行。这些包括<code>SHOW</code>、<code>DESCRIBE</code>和<code>EXPLAIN</code>。他们应该象<code>SELECT</code>语句相同的方式来对待。）</p>
+
+<p>对客户，有两种方法处理结果集合。一种方法是通过调用<code>mysql_store_result()</code>立刻检索全部结果。该函数从服务器获得查询返回的所有行，并将他们存储在客户端。第二种方法是对客户通过调用<code>mysql_use_result()</code>初始化一个一行一行地结果集合的检索。该函数初始化检索，但是实际上不从服务器获得任何行。</p>
+
+<p>在两种情况中，你通过<code>mysql_fetch_row()</code>存取行。用<code>mysql_store_result()</code>、<code>mysql_fetch_row()</code>储存取已经从服务器被取出的行。用<code>mysql_use_result()</code>、<code>mysql_fetch_row()</code>实际上从服务器检索行。调用<code>mysql_fetch_lengths()</code>可获得关于每行中数据值尺寸的信息。</p>
+
+<p>在你用完一个结果集合以后，调用<code>mysql_free_result()</code>释放由它使用的内存。</p>
+
+<p>两种检索机制是互补的。客户程序应该选择最适合他们的要求的途径。在实践中，客户通常更愿意使用<code>mysql_store_result()</code>。</p>
+
+<p><code>mysql_store_result()</code>的一个优点是既然行均被客户取到，你不仅能顺序存取行，你也能<code>mysql_data_seek()</code>或<code>mysql_row_seek()</code>在结果集合中前后移动以改变在结果集合中的当前行位置。你也能通过调用<code>mysql_num_rows()</code>知道有多少行。另一方面，<code>mysql_store_result()</code>的内存需求对较大结果集合可能很高，并且你最可能遇到out-of-memory情况。</p>
+
+<p><code>mysql_use_result()</code>的一个优点是客户为结果集合需要较少的内存，因为它一次只是维持一行(并且因为有较少的分配开销，<code>mysql_use_result()</code>能更快些)。缺点是你必须尽快处理每一行以避免困住服务器，你不必再结果集合中随意存取行(你只能顺序存取行)，而且你不知道在结果集合中有多少行，直到你检索全部结果。还有，你<em>必须</em>检索出所有行，即使你在检索中途确定你已找到了想寻找的信息。 
+</p>
+
+<p>API使得客户正确应答查询成为可能(仅检索必要的行)，不用知道查询是否是一个<code>SELECT</code>。你可以通过在<code>mysql_query()</code>（或<code>mysql_real_query()</code>)之后调用<code>mysql_store_result()</code>做到。如果结果集合调用成功并且查询是一个<code>SELECT</code>，你能读取行。如果结果集合调用，调用<code>mysql_field_count()</code>确定结果是否是实际期望的。如果<code>mysql_field_count()</code>返回0，查询没有返回数据(表明它是一个<code>INSERT</code>、<code>UPDATE</code>、DELETE等)，所以不期望返回行。如果<code>mysql_field_count()</code>是非零，查询应该有返回行，但是没有。这表明查询是一个失败的<code>SELECT</code>。见<code>mysql_field_count()</code>如何能做到的例子的描述。</p>
+
+<p><code>mysql_store_result()</code>和<code>mysql_use_result()</code>都允许你获得有关组成结果集合的字段的信息(字段数量、他们的名字和类型等等)。你可以通过重复调用<code>mysql_fetch_field()</code>在行中顺序存取字段信息，或调用<code>mysql_fetch_field_direct()</code>存取行中的字段编号。当前字段光标位置可以通过调用<code>mysql_field_seek()</code>改变，设置字段光标影响到后续<code>mysql_fetch_field()</code>调用。你也能通过调用<code>mysql_fetch_fields()</code>马上获得字段信息。</p>
+
+<p>对于检测和报告错误，<strong>MySQL</strong>借助于<code>mysql_errno()</code>和<code>mysql_error()</code>函数提供错误信息的存取。他们返回最近调用的可能成功或失败的函数的错误代码或错误消息，允许你确定何时发生一个错误和什么错误。 
+</p>
+
+<h2><a name="C_API_functions" style="">20.4 C API函数描述</a></h2>
+
+<p>在下面的描述中，一个<code>NULL</code>参数或返回值含义是在C编程语言环境的<code>NULL</code>，不是一个<strong>MySQL</strong> 
+<code>NULL</code>值。</p>
+
+<p>返回一个值的函数一般返回一个指针或一个整数。除非另外指定，返回一个指针的函数返回一个非 
+<code>NULL</code>值表明成功，或一个<code>NULL</code>值表明一个错误，而返回一个整数的函数返回零表示成功，或非零表示一个错误。注意，“非零”只有这个含义。除非函数描述另外说明，不要测试一个零以外的其他值：</p>
+
+<pre>if (result)                   /* 正确 */
+    ... error ...
+
+if (result &lt; 0)               /* 不正确 */
+    ... error ...
+
+if (result == -1)             /* 不正确 */
+    ... error ...
+
+</pre>
+
+<p>当函数返回一个错误时，函数描述的<strong>错误</strong>小节列出错误可能的类型。你可以调用<code>mysql_errno()</code>找出发生了这些重的哪一个。错误的字符串表示可以调用<code>mysql_error()</code>获得。</p>
+
+<h3><a name="mysql_affected_rows" style="">20.4.1<code> 
+mysql_affected_rows()</code></a></h3>
+
+<p><code>my_ulonglong mysql_affected_rows(MYSQL *mysql)</code> </p>
+
+<h4>20.4.1.1 说明</h4>
+
+<p>返回受到最后一个<code>UPDATE</code>、<code>DELETE</code>或<code>INSERT</code>查询影响(变化)的行数。可以在针对<code>UPDATE</code>、<code>DELETE</code>或<code>INSERT</code>语句的<code>mysql_query()</code>之后立即调用。对于<code>SELECT</code>语句，<code>mysql_affected_rows()</code>的功能于<code>mysql_num_rows()</code>相同。</p>
+
+<p><code>mysql_affected_rows()</code>目前以一个宏(macro)来实现。</p>
+
+<h4>20.4.1.2 返回值</h4>
+
+<p>大于零的一个整数表示受到影响或检索出来的行数。零表示没有匹配查序中<code>WHERE</code>子句的记录或目前还没有查询被执行。-1表示查询返回一个错误，或对于一个<code>SELECT</code>查询，<code>mysql_affected_rows()</code>在调用<code>mysql_store_result()</code>之前被调用。</p>
+
+<h4>20.4.1.3 错误</h4>
+
+<p>没有。 </p>
+
+<h4>20.4.1.4 范例</h4>
+
+<pre>mysql_query(&amp;mysql,"UPDATE products SET cost=cost*1.25 WHERE group=10");
+printf("%d products updated",mysql_affected_rows(&amp;mysql));
+<a name="IDX724"></a> </pre>
+
+<h3><a name="mysql_close" style="">20.4.2<code> mysql_close()</code></a></h3>
+
+<p><code>void mysql_close(MYSQL *mysql)</code> </p>
+
+<h4>20.4.2.1 说明</h4>
+
+<p>关闭一个以前打开了的连接。如果句柄由<code>mysql_init()</code>或<code>mysql_connect()</code>自动分配，<code>mysql_close()</code>也释放被<code>mysql</code>指向的连接句柄。</p>
+
+<h4>20.4.2.2 返回值</h4>
+
+<p>没有。 </p>
+
+<h4>20.4.2.3 错误</h4>
+
+<dl compact="mysql_close">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。</dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务者的连接在查询期间失去。</dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p><a name="IDX725"></a> </p>
+
+<h3><a name="mysql_connect" style="">20.4.3<code> 
+mysql_connect()</code></a></h3>
+
+<p><code>MYSQL *mysql_connect(MYSQL *mysql, const char *host, const char *user, const char 
+*passwd)</code> </p>
+
+<h4>20.4.3.1 说明</h4>
+
+<p>该函数不推荐使用，而更好使用<code>mysql_real_connect()</code>。 </p>
+
+<p><code>mysql_connect()</code>试图建立一个对运行在<code>host</code>的一个<strong>MySQL</strong>数据库引擎的连接。<code>mysql_connect()</code>必须在你能执行其他API函数之前成功地完成，除了<code>mysql_get_client_info()</code>。</p>
+
+<p>参数的含义与<code>mysql_connect()</code>相应的参数相同，不同的是连接参数可以是<code>NULL</code>。在这种情况下，C 
+API 自动为连接结构分配内存，并且当你调用<code>mysql_close()</code>，释放它。这种方法的缺点是如果连接失败，你不能检索出一条错误消息。（为了从<code>mysql_errno()</code>或<code>mysql_error()</code>得到错误信息，你必须提供一个有效的<code>MYSQL</code>指针。）</p>
+
+<h4>20.4.3.2 返回值</h4>
+
+<p>同<code>mysql_real_connect()</code>。 </p>
+
+<h4>20.4.3.3 错误</h4>
+
+<p>同<code>mysql_real_connect()</code>。</p>
+
+<p><a name="IDX726"></a> </p>
+
+<h3><a name="mysql_change_user" style="">20.4.4<code>mysql_change_user()</code></a></h3>
+
+<p><code>my_bool mysql_change_user(MYSQL *mysql, const char *user, const char *password, 
+const char *db)</code> </p>
+
+<h4>20.4.4.1 说明</h4>
+
+<p>改变用户并且使得由<code>db</code>指定数据库成为由<code>mysql</code>指定的连接上的缺省(当前)数据库。在随后的查询中，这个数据库是不包括一个明确的数据库指定符的表引用的缺省值。</p>
+
+<p>这个函数功能在<strong>MySQL</strong> 3.23.3中引入。</p>
+
+<p>除非连接的用户能被认证或如果他没有权限使用数据库，<code>mysql_change_user()</code>失败。在这种情况下，用户和数据库都没被改变。</p>
+
+<p>如果你不想有一个缺省数据库，<code>db</code>参数可以被设置为<code>NULL</code>。 
+</p>
+
+<h4>20.4.4.2 返回值</h4>
+
+<p>成功，零。如果发生一个错误发生，非零。 </p>
+
+<h4>20.4.4.3 错误</h4>
+
+<p>与你能从<code>mysql_real_connect()</code>得到的相同。 
+
+</p><dl compact="mysql_change_user">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务者关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务者的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+  <dt><code>ER_UNKNOWN_COM_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器未实现这个命令(可能是一个老的服务器）</dd>
+  <dt><code>ER_ACCESS_DENIED_ERROR</code> </dt>
+  <dd>用户或口令错误。 </dd>
+  <dt><code>ER_BAD_DB_ERROR</code> </dt>
+  <dd>数据库不存在。 </dd>
+  <dt><code>ER_DBACCESS_DENIED_ERROR</code> </dt>
+  <dd>用户没有数据库的存取权利。 </dd>
+  <dt><code>ER_WRONG_DB_NAME</code> </dt>
+  <dd>数据库名字太长。 </dd>
+</dl>
+
+<h4>20.4.4.4 范例</h4>
+
+<pre>if (mysql_change_user(&amp;mysql, "user", "password", "new_database"))
+{
+   fprintf(stderr, "Failed to change user.  Error: %s\n",
+           mysql_error(&amp;mysql));
+}
+<a name="IDX727"></a> </pre>
+
+<h3><a name="mysql_create_db" style="">20.4.5<code> 
+mysql_create_db()</code></a></h3>
+
+<p><code>int mysql_create_db(MYSQL *mysql, const char *db)</code> </p>
+
+<h4>20.4.5.1 说明</h4>
+
+<p>创建由<code>db</code>参数命名的数据库。 </p>
+
+<p>这个函数不推荐，而最好使用<code>mysql_query()</code>发出一条SQL<code> 
+CREATE DATABASE</code>语句。 </p>
+
+<h4>20.4.5.2 返回值</h4>
+
+<p>如果数据库成功地被创造，零。如果发生一个错误，非零。 </p>
+
+<h4>20.4.5.3 错误</h4>
+
+<dl compact="mysql_create_db">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。</dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务者的连接在查询期间失去。</dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。&#160; </dd>
+</dl>
+
+<h4>20.4.5.4 范例</h4>
+
+<pre>if(mysql_create_db(&amp;mysql, "my_database"))
+{
+   fprintf(stderr, "Failed to create new database.  Error: %s\n",
+           mysql_error(&amp;mysql));
+}
+<a name="IDX728"></a> </pre>
+
+<h3><a name="mysql_data_seek" style="">20.4.6<code> 
+mysql_data_seek()</code></a></h3>
+
+<p><code>void mysql_data_seek(MYSQL_RES *result, unsigned long long offset)</code> </p>
+
+<h4>20.4.6.1 说明</h4>
+
+<p>在一个查询结果集合中定位任意行。这要求结果集合结构包含查询的全部结果，这样<code>mysql_data_seek()</code>可以仅需与<code>mysql_store_result()</code>一起使用，不是与<code>mysql_use_result()</code>。</p>
+
+<p>偏移量应该是从0到<code>mysql_num_rows(result)-1</code>范围的一个值。</p>
+
+<h4>20.4.6.2 返回值</h4>
+
+<p>无。 </p>
+
+<h4>20.4.6.3 错误</h4>
+
+<p>无。 </p>
+
+<p>　</p>
+
+<h3><a name="mysql_debug" style="">20.4.7<code> mysql_debug()</code></a></h3>
+
+<p><code>void mysql_debug(char *debug)</code> </p>
+
+<h4>20.4.7.1 说明</h4>
+
+<p>用一个给定字符串做一个<code>DBUG_PUSH</code>。<code>mysql_debug()</code>使用Fred 
+Fish 调试库。为了使用这个函数，你必须编译客户库以支持调试。见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Porting.html#Debugging_server">G.1 调试一个MySQL服务器</a>和节<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Porting.html#Debugging_client">G.2 调试一个MySQL客户</a>。 </p>
+
+<h4>20.4.7.2 返回值</h4>
+
+<p>无。 </p>
+
+<h4>20.4.7.3 错误</h4>
+
+<p>无。 </p>
+
+<h4>20.4.7.4 范例</h4>
+
+<p>下面所示的调用使得客户库在客户机器上<tt>的“/tmp/client.trace”</tt>中产生一个跟踪文件： 
+</p>
+
+<pre>mysql_debug("d:t:O,/tmp/client.trace");
+<a name="IDX730"></a> </pre>
+
+<h3><a name="mysql_drop_db" style="">20.4.8<code> 
+mysql_drop_db()</code></a></h3>
+
+<p><code>int mysql_drop_db(MYSQL *mysql, const char *db)</code> </p>
+
+<h4>20.4.8.1 说明</h4>
+
+<p>抛弃由<code>db</code>参数命名的数据库。 </p>
+
+<p>这个函数不推荐，而最好使用<code>mysql_query()</code>发出一条SQL<code> 
+DROP DATABASE</code>语句。 </p>
+
+<h4>20.4.8.2 返回值</h4>
+
+<p>如果数据库成功地被破抛弃，零。如果发生一个错误，非零。 </p>
+
+<h4>20.4.8.3 错误</h4>
+
+<dl compact="mysql_drop_db">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。</dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务者的连接在查询期间失去。</dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。&#160; </dd>
+</dl>
+
+<h4>20.4.8.4 范例</h4>
+
+<pre>if(mysql_drop_db(&amp;mysql, "my_database"))
+  fprintf(stderr, "Failed to drop the database: Error: %s\n",
+          mysql_error(&amp;mysql));
+<a name="IDX731"></a> </pre>
+
+<h3><a name="mysql_dump_debug_info" style="">20.4.9<code> 
+mysql_dump_debug_info()</code></a></h3>
+
+<p><code>int mysql_dump_debug_info(MYSQL *mysql)</code> </p>
+
+<h4>20.4.9.1 说明</h4>
+
+<p>指示服务者将一些调试信息写入日志文件。连接的用户对此必须有<strong>precess</strong>权限才能工作。 
+</p>
+
+<h4>20.4.9.2 返回值</h4>
+
+<p>如果命令成功，零。如果发生一个错误，非零。 </p>
+
+<h4>20.4.9.3 错误</h4>
+
+<dl compact="mysql_dump_debug_info">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务者关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_eof" style="">20.4.10<code> mysql_eof()</code></a></h3>
+
+<p><code>my_bool mysql_eof(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.10.1 说明</h4>
+
+<p>这个函数不推荐，而使用<code>mysql_errno()</code>或<code>mysql_error()</code>。 
+</p>
+
+<p><code>mysql_eof()</code>确定是否已经读到了一个结果集合的最后一行。</p>
+
+<p>如果你从成功的<code>mysql_store_result()</code>调用获得一个结果集合，客户程序用一个操作收到全部集合。在这种情况下，从<code>mysql_fetch_row()</code>返回一个<code>NULL</code>总是意味着已经到达了结果集合的尾部，没必要调用<code>mysql_eof()</code>。 
+</p>
+
+<p>在另一方面，如果你使用<code>mysql_use_result()</code>初始化一个结果集合的检索，该集合的行随着你重复调用<code>mysql_fetch_row()</code>一个一个地从服务器获得。因为在这个过程中在连接上可能发生一个错误，从<code>mysql_fetch_row()</code>返回一个<code>NULL</code>值并不意味着集合正常到达了尾部。在这种情况下，你能使用<code>mysql_eof()</code>确定发生了什么。如果到达结果集合的尾部，<code>mysql_eof()</code>返回非零值，并且如果发生一个错误，返回零。</p>
+
+<p>在时间上，<code>mysql_eof()</code>先于标准<strong>MySQL</strong>错误函数<code>mysql_errno()</code>和<code>mysql_error()</code>。因为这些错误函数提供相同的信息，他们的使用更好<code>mysql_eof()</code>，它现在不建议使用。（事实上，他们提供更多的信息，因为<code>mysql_eof()</code>值返回一个布尔值，而错误函数指出当发生错误时的出错原因。）</p>
+
+<h4>20.4.10.2 返回值</h4>
+
+<p>如果发生一个错误，零。如果到达结果集合的结束，非零。 </p>
+
+<h4>20.4.10.3 错误</h4>
+
+<p>无。 </p>
+
+<h4>20.4.10.4 范例</h4>
+
+<p>下列例子显示你必须如何使用<code>mysql_eof()</code>：</p>
+
+<pre>mysql_query(&amp;mysql,"SELECT * FROM some_table");
+result = mysql_use_result(&amp;mysql);
+while((row = mysql_fetch_row(result)))
+{
+    // do something with data
+}
+if(!mysql_eof(result))  // mysql_fetch_row() failed due to an error
+{
+    fprintf(stderr, "Error: %s\n", mysql_error(&amp;mysql));
+}
+</pre>
+
+<p>然而，你可以用标准<strong>MySQL</strong>错误函数完成同样的效果： </p>
+
+<pre>mysql_query(&amp;mysql,"SELECT * FROM some_table");
+result = mysql_use_result(&amp;mysql);
+while((row = mysql_fetch_row(result)))
+{
+    // do something with data
+}
+if(mysql_errno(&amp;mysql))  // mysql_fetch_row() failed due to an error
+{
+    fprintf(stderr, "Error: %s\n", mysql_error(&amp;mysql));
+}
+<a name="IDX733"></a> </pre>
+
+<h3><a name="mysql_errno" style="">20.4.11<code> mysql_errno()</code></a></h3>
+
+<p><code>unsigned int mysql_errno(MYSQL *mysql)</code> </p>
+
+<h4>20.4.11.1 说明</h4>
+
+<p>对于由<code>mysql</code>指定的连接，<code>mysql_errno()</code>返回最近调用的可能成功或失败的API函数的错误代码。返回值零意味着没有错误发生。客户错误消息编号列出在<strong>MySQL</strong><tt>“errmsg.h”</tt>头文件中。服务器错误消息编号列出在<tt>“mysqld_error.h”</tt>中。 
+</p>
+
+<h4>20.4.11.2 返回值：</h4>
+
+<p>一个错误代码值。如果没有错误发生，零。 </p>
+
+<h4>20.4.11.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX734"></a></p>
+
+<h3><a name="mysql_error" style="">20.4.12<code> mysql_error()</code></a></h3>
+
+<p><code>char *mysql_error(MYSQL *mysql)</code> </p>
+
+<h4>20.4.12.1 说明</h4>
+
+<p>对于由<code>mysql</code>指定的连接，<code>mysql_errno()</code>返回最近调用的可能成功或失败的API函数的错误代码。如果没有错误发生，返回空字符串(<code>""</code>)。这意味着下列两个测试是等价的：</p>
+
+<pre>if(mysql_errno(&amp;mysql))
+{
+    // an error occurred
+}
+
+if(mysql_error(&amp;mysql)[0] != '\0')
+{
+    // an error occurred
+}
+</pre>
+
+<p>客户错误消息的语言可通过重新编译<strong>MySQL</strong>客户库来改变。目前，你能在几种不同的语言间选取错误消息。见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Server.html#Languages">9.1 MySQL支持什么语言？</a>。 </p>
+
+<h4>20.4.12.2 返回值</h4>
+
+<p>一个描述错误的字符串。如果没有错误发生，空字符串。 </p>
+
+<h4>20.4.12.3 错误</h4>
+
+<p>无。 </p>
+
+<p>　</p>
+
+<h3><a name="mysql_escape_string" style="">20.4.13<code> 
+mysql_escape_string()</code></a></h3>
+
+<p><code>unsigned int mysql_escape_string(char *to, const char *from, unsigned int length)</code> 
+</p>
+
+<h4>20.4.13.1 说明</h4>
+
+<p>把在<code>from</code>中的字符串编码为在一条SQL语句中可以发给服务器的转义的SQL字符串，将结果放在<code>to</code>中， 
+并且加上一个终止的空字节。编码的字符是<code>NUL</code>（ASCII 0)、<samp>‘\n</samp>’、<samp>‘\r’</samp>、<samp>‘\’</samp>、<samp>‘'’</samp>、<samp>‘"’和</samp>Control-Z(见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Reference.html#Literals">7.1 文字：如何写字符串和数字</a>)。</p>
+
+<p>由<code>from</code>指向的字符串必须是<code>length</code>个字节长。你必须分配<code>to</code>的缓冲区至少<code>length*2+1</code>个字节长。（在更坏的情况，每个字符可能需要使用2个字节被编码，并且你需要为终止空字节的空间) 
+当<code>mysql_escape_string()</code>返回时，<code>to</code>的内容将是空字符终止的字符串。返回值是编码后的字符串的长度，不包括终止空字符。 
+</p>
+
+<h4>20.4.13.2 范例</h4>
+
+<pre>char query[1000],*end;
+
+end = strmov(query,"INSERT INTO test_table values(");
+*end++ = '\'';
+end += mysql_escape_string(end,"What's this",11);
+*end++ = '\'';
+*end++ = ',';
+*end++ = '\'';
+end += mysql_escape_string(end,"binary data: \0\r\n",16);
+*end++ = '\'';
+*end++ = ')';
+
+if (mysql_real_query(&amp;mysql,query,(unsigned int) (end - query)))
+{
+   fprintf(stderr, "Failed to insert row, Error: %s\n",
+           mysql_error(&amp;mysql));
+}
+</pre>
+
+<p>例子中所用的<code>strmov()</code>函数被包括在<code>mysqlclient</code>库中且功能类似于<code>strcpy()</code>，但是返回一个指向空终止的第一个参数的指针。 
+</p>
+
+<h4>20.4.13.3 返回值</h4>
+
+<p>放进<code>to</code>的值的长度，不包括终止空字符。</p>
+
+<h4>20.4.13.4 错误</h4>
+
+<p>无。</p>
+
+<p>　</p>
+
+<h3><a name="mysql_fetch_field" style="">20.4.14<code> 
+mysql_fetch_field()</code></a></h3>
+
+<p><code>MYSQL_FIELD *mysql_fetch_field(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.14.1 说明</h4>
+
+<p>返回作为一个<code>MYSQL_FIELD</code>结构的一个结果集合的一个列的定义。重复调用这个函数在结果集合中检索所有关于列的信息。当没有剩下更多的字段时，<code>mysql_fetch_field()</code>返回<code>NULL</code>。</p>
+
+<p>在每次你执行一个新的<code>SELECT</code>查询，<code>mysql_fetch_field()</code>被重置（reset)以返回有关第一列的信息。由<code>mysql_fetch_field()</code>返回的字段也受调用<code>mysql_field_seek()</code>的影响。</p>
+
+<p>如果你调用<code>mysql_query()</code>在一张表上执行一个<code>SELECT</code>，但是没调用<code>mysql_store_result()</code>，如果你调用<code>mysql_fetch_field()</code>询问一个<code>BLOB</code>字段的长度，<strong>MySQL</strong>返回缺省BLOB长度(8K字节)。（选择8K的长度是因为<strong>MySQL</strong>不知道<code>BLOB</code>的最大长度。这应该在某个时候是它可配置) 
+一旦你已经检索了结果集合，<code>field-&gt;max_length</code>包含了在特定查询中对于该列最大值的长度。</p>
+
+<h4>20.4.14.2 返回值</h4>
+
+<p>当前列的<code>MYSQL_FIELD</code>结构。如果没有列剩下，<code>NULL</code>。</p>
+
+<h4>20.4.14.3 错误</h4>
+
+<p>无。</p>
+
+<h4>20.4.14.4 范例</h4>
+
+<pre>MYSQL_FIELD *field;
+
+while((field = mysql_fetch_field(result)))
+{
+    printf("field name %s\n", field-&gt;name);
+}
+<a name="IDX737"></a> </pre>
+
+<h3><a name="mysql_fetch_fields" style="">20.4.15<code> 
+mysql_fetch_fields()</code></a></h3>
+
+<p><code>MYSQL_FIELD *mysql_fetch_fields(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.15.1 说明</h4>
+
+<p>返回一个结果集合的所有<code>MYSQL_FIELD</code>结构的数组。每个结构提供结果结合中一列的字段定义。 
+</p>
+
+<h4>20.4.15.2 返回值</h4>
+
+<p>一个结果集合的所有<code>MYSQL_FIELD</code>结构的一个数组。</p>
+
+<h4>20.4.15.3 错误</h4>
+
+<p>无。 </p>
+
+<h4>20.4.15.4 范例</h4>
+
+<pre>unsigned int num_fields;
+unsigned int i;
+MYSQL_FIELD *fields;
+
+num_fields = mysql_num_fields(result);
+fields = mysql_fetch_fields(result);
+for(i = 0; i &lt; num_fields; i++)
+{
+   printf("Field %u is %s\n", i, fields[i].name);
+}
+</pre>
+
+<h3><a name="mysql_fetch_field_direct" style="">20.4.16<code> 
+mysql_fetch_field_direct()</code></a></h3>
+
+<p><code>MYSQL_FIELD *mysql_fetch_field_direct(MYSQL_RES *result, unsigned int fieldnr)</code> 
+</p>
+
+<h4>20.4.16.1 说明</h4>
+
+<p>给定在一个结果集合中的一个列的字段编号<code>fieldnr</code>，返回作为<code>MYSQL_FIELD</code>结构的列的字段定义。你可以使用这个函数检索任意列的义。<code>fieldnr</code>的值应该在从0到<code>mysql_num_fields(result)-1</code>范围内。</p>
+
+<h4>20.4.16.2 返回值</h4>
+
+<p>指定列的<code>MYSQL_FIELD</code>结构。 </p>
+
+<h4>20.4.16.3 错误</h4>
+
+<p>无。 </p>
+
+<h4>20.4.16.4 范例</h4>
+
+<pre>unsigned int num_fields;
+unsigned int i;
+MYSQL_FIELD *field;
+
+num_fields = mysql_num_fields(result);
+for(i = 0; i &lt; num_fields; i++)
+{
+    field = mysql_fetch_field_direct(result, i);
+    printf("Field %u is %s\n", i, field-&gt;name);
+}
+<a name="IDX739"></a> </pre>
+
+<h3><a name="mysql_fetch_lengths" style="">20.4.17<code> 
+mysql_fetch_lengths()</code></a></h3>
+
+<p><code>unsigned long *mysql_fetch_lengths(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.17.1 说明</h4>
+
+<p>返回在结果集合内的当前行的列长度。如果你计划拷贝字段值，这个长度信息对优化也是有用的，因为你可以避免调用<code>strlen()</code>。另外，如果结果集合中包含二进制数据，你<em>必须</em>使用这个函数确定数据的大小，因为<code>strlen()</code>对包含空字符的任何字段返回不正确的结果。 
+</p>
+
+<p>空列和包含<code>NULL</code>的列的长度值是零。为了看清如何区分这两种情况，见<code>mysql_fetch_row()</code>的说明。</p>
+
+<h4>20.4.17.2 返回值</h4>
+
+<p>表示每列大小的无符号长整数的一个数组(不包括任何终止空字符)。如果出现一个错误，<code>NULL</code>。 
+</p>
+
+<h4>20.4.17.3 错误</h4>
+
+<p><code>mysql_fetch_lengths()</code>只对结果集合的当前行有效。如果你在调用<code>mysql_fetch_row()</code>之前或在检索出在结果中的所有以后，它返回<code>NULL。</code></p>
+
+<h4>20.4.17.4 范例</h4>
+
+<pre>MYSQL_ROW row;
+unsigned long *lengths;
+unsigned int num_fields;
+unsigned int i;
+
+row = mysql_fetch_row(result);
+if (row)
+{
+    num_fields = mysql_num_fields(result);
+    lengths = mysql_fetch_lengths(result);
+    for(i = 0; i &lt; num_fields; i++)
+    {
+         printf("Column %u is %lu bytes in length.\n", i, lengths[i]);
+    }
+}
+<a name="IDX740"></a> </pre>
+
+<h3><a name="mysql_fetch_row" style="">20.4.18<code> 
+mysql_fetch_row()</code></a></h3>
+
+<p><code>MYSQL_ROW mysql_fetch_row(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.18.1 说明</h4>
+
+<p>检索一个结果集合的下一行。当在<code>mysql_store_result()</code>之后使用时，如果没有更多的行可见所时，<code>mysql_fetch_row()</code>返回<code>NULL</code>。当在<code>mysql_use_result()</code>之后使用时，当没有更多的行可检索时或如果出现一个错误，<code>mysql_fetch_row()</code>返回<code>NULL。</code></p>
+
+<p>在行中值的数量由<code>mysql_num_fields(result)</code>给出。如果<code>row</code>保存了从一个对用<code>mysql_fetch_row()</code>调用返回的值，指向该值的指针作为<code>row[0]</code>到<code>row[mysql_num_fields(result)-1]</code>来存取。在行中的<code>NULL</code>值由<code>NULL</code>指针指出。</p>
+
+<p>在行中字段值的长度可以通过调用<code>mysql_fetch_lengths()</code>获得。空字段和包含<code>NULL</code>的字段长度都是 
+0；你可以通过检查该值的指针区分他们。如果指针是<code>NULL</code>，字段是<code>NULL</code>；否则字段是空的。</p>
+
+<h4>20.4.18.2 返回值</h4>
+
+<p>下一行的一个<code>MYSQL_ROW</code>结构。如果没有更多的行可检索或如果出现一个错误，<code>NULL。</code></p>
+
+<h4>20.4.18.3 错误</h4>
+
+<dl compact="mysql_fetch_row">
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<h4>20.4.18.4 范例</h4>
+
+<pre>MYSQL_ROW row;
+unsigned int num_fields;
+unsigned int i;
+
+num_fields = mysql_num_fields(result);
+while ((row = mysql_fetch_row(result)))
+{
+   unsigned long *lengths;
+   lengths = mysql_fetch_lengths(result);
+   for(i = 0; i &lt; num_fields; i++)
+   {
+       printf("[%.*s] ", (int) lengths[i], row[i] ? row[i] : "NULL");
+   }
+   printf("\n");
+}
+<a name="IDX741"></a> </pre>
+
+<h3><a name="mysql_field_count" style="">20.4.19<code> 
+mysql_field_count()</code></a></h3>
+
+<p><code>unsigned int mysql_field_count(MYSQL *mysql)</code> </p>
+
+<p>如果你正在使用一个比3.22.24早<strong>MySQL</strong>版本，你应该使用<code>unsigned 
+int mysql_num_fields(MYSQL *mysql)</code>。 </p>
+
+<h4>20.4.19.1 说明</h4>
+
+<p>返回在连接上的最近查询的列的数量。 </p>
+
+<p>这个函数一般用在<code>mysql_store_result()</code>返回<code>NULL</code>时（这样你没有结果设置指针)。在这种情况中，你能调用<code>mysql_field_count()</code>确定<code>mysql_store_result()</code>是否应该产生了一个非空的结果。这允许一个客户程序执行正确的操作，而不必知道查询是否是一条<code>SELECT</code>（或类<code>SELECT</code>)语句。下面显示的例子说明这怎样可以做到。 
+</p>
+
+<p>见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Clients.html#NULL_mysql_store_result">20.4.51 为什么在<code>mysql_query()</code>返回成功后，<code>mysql_store_result()</code>有时返回<code>NULL?</code></a>。</p>
+
+<h4>20.4.19.2 返回值</h4>
+
+<p>在结果集合中表示字段数量字的一个无符号整数。 </p>
+
+<h4>20.4.19.3 错误</h4>
+
+<p>无。 </p>
+
+<h4>20.4.19.4 范例</h4>
+
+<pre>MYSQL_RES *result;
+unsigned int num_fields;
+unsigned int num_rows;
+
+if (mysql_query(&amp;mysql,query_string))
+{
+    // error
+}
+else // query succeeded, process any data returned by it
+{
+    result = mysql_store_result(&amp;mysql);
+    if (result)  // there are rows
+    {
+        num_fields = mysql_num_fields(result);
+        // retrieve rows, then call mysql_free_result(result)
+    }
+    else  // mysql_store_result() returned nothing; should it have?
+    {
+        if(mysql_field_count(&amp;mysql) == 0)
+        {
+            // query does not return data
+            // (it was not a SELECT)
+            num_rows = mysql_affected_rows(&amp;mysql);
+        }
+        else // mysql_store_result() should have returned data
+        {
+            fprintf(stderr, "Error: %s\n", mysql_error(&amp;mysql));
+        }
+    }
+}
+</pre>
+
+<p>另一个选择是用<code>mysql_errno(&amp;mysql)</code>代替<code>mysql_field_count(&amp;mysql)</code>调用。在这种情况中，你直接检查来自<code>mysql_store_result()</code>的一个错误而非从<code>mysql_field_count()</code>值来推断语句是否是一个<code>SELECT</code>。</p>
+
+<p><a name="IDX742"></a> </p>
+
+<h3><a name="mysql_field_seek" style="">20.4.20<code> 
+mysql_field_seek()</code></a></h3>
+
+<p><code>MYSQL_FIELD_OFFSET mysql_field_seek(MYSQL_RES *result, MYSQL_FIELD_OFFSET offset)</code> 
+</p>
+
+<h4>20.4.20.1 说明</h4>
+
+<p>将字段光标设置到给定的偏移量。下一次调用<code>mysql_fetch_field()</code>将检索与该偏移量关联的列的字段定义。 
+</p>
+
+<p>为了定位于行的起始，传递一个值为0的<code>offset</code>值。 </p>
+
+<h4>20.4.20.2 返回值</h4>
+
+<p>字段光标的先前的值。 </p>
+
+<h4>20.4.20.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX743"></a> </p>
+
+<h3><a name="mysql_field_tell" style="">20.4.21<code>mysql_field_tell()</code></a></h3>
+
+<p><code>MYSQL_FIELD_OFFSET mysql_field_tell(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.21.1 说明</h4>
+
+<p>返回用于最后一个<code>mysql_fetch_field()</code>的字段光标的位置。这个值可用作<code>mysql_field_seek()</code>的一个参数。 
+</p>
+
+<h4>20.4.21.2 返回值</h4>
+
+<p>字段光标的当前偏移量。 </p>
+
+<h4>20.4.21.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX744"></a> </p>
+
+<h3><a name="mysql_free_result" style="">20.4.22<code> 
+mysql_free_result()</code></a></h3>
+
+<p><code>void mysql_free_result(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.22.1 说明</h4>
+
+<p>释放由<code>mysql_store_result()</code>、<code>mysql_use_result()</code>、mysql_list_dbs()等为一个结果集合分配的内存。当你用完了一个结果集合时，你必须调用<code>mysql_free_result()</code>来释放它使用的内存。</p>
+
+<h4>20.4.22.2 返回值</h4>
+
+<p>无。 </p>
+
+<h4>20.4.22.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX745"></a> </p>
+
+<h3><a name="mysql_get_client_info" style="">20.4.23<code> 
+mysql_get_client_info()</code></a></h3>
+
+<p><code>char *mysql_get_client_info(void)</code> </p>
+
+<h4>20.4.23.1 说明</h4>
+
+<p>返回代表客户库的版本的字符串。 </p>
+
+<h4>20.4.23.2 返回值</h4>
+
+<p>代表<strong>MySQL</strong>客户库版本的一个字符串。</p>
+
+<h4>20.4.23.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX746"></a> </p>
+
+<h3><a name="mysql_get_host_info" style="">20.4.24<code> 
+mysql_get_host_info()</code></a></h3>
+
+<p><code>char *mysql_get_host_info(MYSQL *mysql)</code> </p>
+
+<h4>20.4.24.1 说明</h4>
+
+<p>返回描述正在使用的连接类型的字符串，包括服务其主机名。 </p>
+
+<h4>20.4.24.2 返回值</h4>
+
+<p>表示服务器主机名者和连接类型的字符串。 </p>
+
+<h4>20.4.24.3 错误</h4>
+
+<p>无。</p>
+
+<p>　</p>
+
+<h3><a name="mysql_get_proto_info" style="">20.4.25<code> 
+mysql_get_proto_info()</code></a></h3>
+
+<p><code>unsigned int mysql_get_proto_info(MYSQL *mysql)</code> </p>
+
+<h4>20.4.25.1 说明</h4>
+
+<p>返回当前连接使用的协议版本。 </p>
+
+<h4>20.4.25.2 返回值</h4>
+
+<p>表示被当前连接使用的协议版本的一个无符号整数。 </p>
+
+<h4>20.4.25.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX748"></a> </p>
+
+<h3><a name="mysql_get_server_info" style="">20.4.26<code> 
+mysql_get_server_info()</code></a></h3>
+
+<p><code>char *mysql_get_server_info(MYSQL *mysql)</code> </p>
+
+<h4>20.4.26.1 说明</h4>
+
+<p>返回表示服务器版本号的字符串。 </p>
+
+<h4>20.4.26.2 返回值</h4>
+
+<p>表示服务器版本号的一个字符串。 </p>
+
+<h4>20.4.26.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX749"></a> </p>
+
+<h3><a name="mysql_info" style="">20.4.27<code> mysql_info()</code></a></h3>
+
+<p><code>char *mysql_info(MYSQL *mysql)</code> </p>
+
+<h4>20.4.27.1 说明</h4>
+
+<p>检索一个字符串，它提供有关最近执行的查询的信息，但是对下面列出的语句。对其他语句，<code>mysql_info()</code>返回<code>NULL</code>。字符串的格式随查询类型而变化，如下所述。数字仅仅是说明性的；字符串将包含对查询适当的值。 
+
+</p><dl compact="mysql_info">
+  <dt><code>INSERT INTO ... SELECT ...</code> </dt>
+  <dd>字符串格式： <code>Records: 100 Duplicates: 0 Warnings: 0</code> </dd>
+  <dt><code>INSERT INTO ... VALUES (...),(...),(...)...</code> </dt>
+  <dd>字符串格式： <code>Records: 3 Duplicates: 0 Warnings: 0</code> </dd>
+  <dt><code>LOAD DATA INFILE ...</code> </dt>
+  <dd>字符串格式： <code>Records: 1 Deleted: 0 Skipped: 0 Warnings: 0</code> </dd>
+  <dt><code>ALTER TABLE</code> </dt>
+  <dd>字符串绳格式： <code>Records: 3 Duplicates: 0 Warnings: 0</code> </dd>
+  <dt><code>UPDATE</code> </dt>
+  <dd>字符串格式： <code>Rows matched: 40 Changed: 40 Warnings: 0</code> </dd>
+</dl>
+
+<p>注意，只有多个值在语句中指定，<code>mysql_info()</code>对<code>INSERT 
+... VALUES</code>语句才返回非<code>NULL</code>值。 </p>
+
+<h4>20.4.27.2 返回值</h4>
+
+<p>表示最近执行的查询的附加信息的一个字符串。如果得不到查询的任何信息，<code>NULL。</code></p>
+
+<h4>20.4.27.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX750"></a> </p>
+
+<h3><a name="mysql_init" style="">20.4.28<code> mysql_init()</code></a></h3>
+
+<p><code>MYSQL *mysql_init(MYSQL *mysql)</code> </p>
+
+<h4>20.4.28.1 说明</h4>
+
+<p>分配或初始化适合<code>mysql_real_connect()</code>的一个<code>MYSQL</code>对象。如果<code>mysql</code>是一个<code>NULL</code>指针，函数分配、初始化并且返回一个新对象。否则对象被初始化并且返回对象的地址。如果<code>mysql_init()</code>分配一个新对象，它将在调用<code>mysql_close()</code>关闭连接时被释放。</p>
+
+<h4>20.4.28.2 返回值</h4>
+
+<p>一个被初始化的<code>MYSQL*</code>句柄。如果没有足够的内存来分配一个新对象，<code>NULL</code>。</p>
+
+<h4>20.4.28.3 错误</h4>
+
+<p>在内存不够的情况下，返回<code>NULL</code>。</p>
+
+<p><a name="IDX751"></a> </p>
+
+<h3><a name="mysql_insert_id" style="">20.4.29<code> 
+mysql_insert_id()</code></a></h3>
+
+<p><code>my_ulonglong mysql_insert_id(MYSQL *mysql)</code> </p>
+
+<h4>20.4.29.1 说明</h4>
+
+<p>返回由先前的查询为一个<code>AUTO_INCREMENT</code>列生成的ID。在你执行一个<code>INSERT</code>查询向一个包含<code>AUTO_INCREMENT</code>字段的表中插入后，使用这个函数。</p>
+
+<p>注意，如果先前的查询不产生一个<code>AUTO_INCREMENT</code>值，<code>mysql_insert_id()</code>返回<code>0</code>。如果你需要在以后保存该值，必须在查询生成了该值后马上调用<code>mysql_insert_id()</code>。</p>
+
+<p>也要注意，SQL的<code>LAST_INSERT_ID()</code>函数总是包含最近生成的<code>AUTO_INCREMENT</code>值，并且在查询之间不被重置，因为该函数的值在服务器端维护。 
+</p>
+
+<h4>20.4.29.2 返回值</h4>
+
+<p>有先前的查询更新的<code>AUTO_INCREMENT</code>字段的值。如果在连接上没有先前的询问或如果查询没更新<code>AUTO_INCREMENT</code>值，返回零。</p>
+
+<h4>20.4.29.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX752"></a> </p>
+
+<h3><a name="mysql_kill" style="">20.4.30<code> mysql_kill()</code></a></h3>
+
+<p><code>int mysql_kill(MYSQL *mysql, unsigned long pid)</code> </p>
+
+<h4>20.4.30.1 说明</h4>
+
+<p>要求服务器杀死由<code>pid</code>指定的线程。 </p>
+
+<h4>20.4.30.2 返回值</h4>
+
+<p>成功，零。如果出现一个错误，非零。 </p>
+
+<h4>20.4.30.3 错误</h4>
+
+<dl compact="mysql_kill">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_list_dbs" style="">20.4.31<code> 
+mysql_list_dbs()</code></a></h3>
+
+<p><code>MYSQL_RES *mysql_list_dbs(MYSQL *mysql, const char *wild)</code> </p>
+
+<h4>20.4.31.1 说明</h4>
+
+<p>返回一个结果集合，它用在服务器上的匹配<code>wild</code>参数指定的简单正则表达式的数据库名组成。<code>wild</code>可以包含通配符字符<samp>“%”</samp>或<samp>“_”</samp>，或可以是匹配所有的数据库的一个<code>NULL</code>指针。调用<code>mysql_list_dbs()</code>类似于执行查询<code>SHOW 
+databases [LIKE wild]</code>。</p>
+
+<p>你必须用<code>mysql_free_result()</code>释放结果集合。 </p>
+
+<h4>20.4.31.2 返回值</h4>
+
+<p>成功，一个<code>MYSQL_RES</code>结果集合。如果出现一个错误，<code>NULL。</code></p>
+
+<h4>20.4.31.3 错误</h4>
+
+<dl compact="mysql_list_dbs">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_OUT_OF_MEMORY</code> </dt>
+  <dd>内存溢出。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_list_fields" style="">20.4.32<code> 
+mysql_list_fields()</code></a></h3>
+
+<p><code>MYSQL_RES *mysql_list_fields(MYSQL *mysql, const char *table, const char *wild)</code> 
+</p>
+
+<h4>20.4.32.1 说明</h4>
+
+<p>返回一个结果集合，它用在给定表中的匹配<code>wild</code>参数指定的简单正则表达式的列名组成。<code>wild</code>可以包含通配符字符<samp>“%”</samp>或<samp>“_”</samp>，或可以是匹配所有列的一个<code>NULL</code>指针。调用<code>mysql_list_fields()</code>类似于执行查询<code>SHOW 
+COLUMNS FROM tbl_name [LIKE wild]</code>。</p>
+
+<p>注意，建议你使用<code>SHOW COLUMNS FROM tbl_name</code>而不是<code>mysql_list_fields()</code>。</p>
+
+<p>你必须用<code>mysql_free_result()</code>释放结果集合。</p>
+
+<h4>20.4.32.2 返回值</h4>
+
+<p>成功，一个<code>MYSQL_RES</code>的结果集合。如果出线一个错误，<code>NULL。</code></p>
+
+<h4>20.4.32.3 错误</h4>
+
+<dl compact="mysql_list_fields">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务者关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p><a name="IDX755"></a> </p>
+
+<h3><a name="mysql_list_processes" style="">20.4.33<code> 
+mysql_list_processes()</code></a></h3>
+
+<p><code>MYSQL_RES *mysql_list_processes(MYSQL *mysql)</code> </p>
+
+<h4>20.4.33.1 说明</h4>
+
+<p>返回一个描述当前服务器线程的结果集合。这是与<code>mysqladmin 
+processlist</code>或<code>SHOW PROCESSLIST</code>查询报告的相同信息。</p>
+
+<p>你必须用<code>mysql_free_result()</code>释放结果集合。</p>
+
+<h4>20.4.33.2 返回值</h4>
+
+<p>成功，一个<code>MYSQL_RES</code>结果集合。如果发生一个错误，<code>NULL。</code></p>
+
+<h4>20.4.33.3 错误</h4>
+
+<dl compact="mysql_list_processes">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务者关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+  <dd><a name="IDX756"></a> </dd>
+</dl>
+
+<h3><a name="mysql_list_tables" style="">20.4.34<code> 
+mysql_list_tables()</code></a></h3>
+
+<p><code>MYSQL_RES *mysql_list_tables(MYSQL *mysql, const char *wild)</code> </p>
+
+<h4>20.4.34.1 说明</h4>
+
+<p>返回一个结果集合，它用在当前数据库中的匹配<code>wild</code>参数指定的简单正则表达式的表名组成。<code>wild</code>可以包含通配符字符<samp>“%”</samp>或<samp>“_”</samp>，或可以是匹配所有表的一个<code>NULL</code>指针。调用<code>mysql_list_tables()</code>类似于执行询问<code>SHOW 
+tables [LIKE wild]</code>。</p>
+
+<p>你必须用<code>mysql_free_result()</code>释放结果集合。</p>
+
+<h4>20.4.34.2 返回值</h4>
+
+<p>成功，一个<code>MYSQL_RES</code>结果集合。如果出现一个错误，<code>NULL。</code></p>
+
+<h4>20.4.34.3 错误</h4>
+
+<dl compact="mysql_list_tables">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不正确的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p><a name="IDX757"></a> </p>
+
+<h3><a name="mysql_num_fields" style="">20.4.35<code> 
+mysql_num_fields()</code></a></h3>
+
+<p><code>unsigned int mysql_num_fields(MYSQL_RES *result)</code> </p>
+
+<p>或</p>
+
+<p><code>unsigned int mysql_num_fields(MYSQL *mysql)</code> </p>
+
+<p>第二中形式在<strong>MySQL</strong> 3.22.24或更新版本上不能工作。为了传递一个<code>MYSQL*</code> 
+参数，你必须使用<code>unsigned int mysql_field_count(MYSQL *mysql)</code>。 </p>
+
+<h4>20.4.35.1 说明</h4>
+
+<p>在结果集合中返回列的数量。 </p>
+
+<p>注意，你也可以通过一个指向一个结果集合或一个连接句柄的指针获得列的数量。如果<code>mysql_store_result()</code>或<code>mysql_user_result()</code>返回<code>NULL</code>，你将使用连接句柄（而这样你没有结果集合指针)。在这种情况下，你可以调用<code>mysql_field_count()</code>确定<code>mysql_store_result()</code>是否应该产生非空的结果。这允许客户程序采取成正确的行动，不必知道查询是否是一个<code>SELECT</code>（或<code>类SELECT</code>)语句。下面被显示出的例子说明这怎么可以被做。 
+</p>
+
+<p>见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Clients.html#NULL_mysql_store_result">20.4.51 为什么在<code>mysql_query()</code>返回成功后，<code>mysql_store_result()</code>有时返回<code>NULL?</code></a>。 
+</p>
+
+<h4>20.4.35.2 返回值</h4>
+
+<p>表示一个结果集合中字段数量的一个无符号整数。 </p>
+
+<h4>20.4.35.3 错误</h4>
+
+<p>无。 </p>
+
+<h4>20.4.35.4 范例</h4>
+
+<pre>MYSQL_RES *result;
+unsigned int num_fields;
+unsigned int num_rows;
+
+if (mysql_query(&amp;mysql,query_string))
+{
+    // error
+}
+else // query succeeded, process any data returned by it
+{
+    result = mysql_store_result(&amp;mysql);
+    if (result)  // there are rows
+    {
+        num_fields = mysql_num_fields(result);
+        // retrieve rows, then call mysql_free_result(result)
+    }
+    else  // mysql_store_result() returned nothing; should it have?
+    {
+        if (mysql_errno(&amp;mysql))
+	{
+           fprintf(stderr, "Error: %s\n", mysql_error(&amp;mysql));
+	}
+        else if (mysql_field_count(&amp;mysql) == 0)
+        {
+            // query does not return data
+            // (it was not a SELECT)
+            num_rows = mysql_affected_rows(&amp;mysql);
+        }
+    }
+}
+</pre>
+
+<p>另一个选择(如果你知道你查询应该返回了一个结果结合)是用<code>mysql_field_count(&amp;mysql)</code> 
+= 0的一个检查来代替<code>mysql_errno(&amp;mysql)</code>。这只会发生在出错了的情形。</p>
+
+<p><a name="IDX759"></a> </p>
+
+<h3><a name="mysql_num_rows" style="">20.4.36<code> 
+mysql_num_rows()</code></a></h3>
+
+<p><code>my_ulonglong mysql_num_rows(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.36.1 说明</h4>
+
+<p>在结果集合中返回行的数量。 </p>
+
+<p><code>mysql_num_rows()</code>的使用取决于你是否使用<code>mysql_store_result()</code>或<code>mysql_use_result()</code>返回一个结果集合。如果你使用<code>mysql_store_result()</code>，<code>mysql_num_rows()</code>可以马上被调用。如果你使用<code>mysql_use_result()</code>，<code>mysql_num_rows()</code>将不会返回正确的值，直到在结果集合中的所有行均被检索了。 
+</p>
+
+<h4>20.4.36.2 返回值</h4>
+
+<p>在结果集合中行的数量。 </p>
+
+<h4>20.4.36.3 错误</h4>
+
+<p>无。 </p>
+
+<h3><a name="mysql_options" style="">20.4.37<code> 
+mysql_options()</code></a></h3>
+
+<p><code>int mysql_options(MYSQL *mysql, enum mysql_option option, const char *arg)</code> 
+</p>
+
+<h4>20.4.37.1 说明</h4>
+
+<p>能用于设置额外连接选项并且影响一个连接的行为。这个函数可以被多次调用来设置多个选项。 
+</p>
+
+<p><code>mysql_options()</code>应该在<code>mysql_init()</code>之后和<code>mysql_connect()</code>或<code>mysql_real_connect()</code>之前调用。</p>
+
+<p><code>option</code>参数是你想要设置的选项；<code>arg</code>参数是选项的值。如果选项是一个整数，那么<code>arg</code>应该指向整数值。</p>
+
+<p>可能的选项值：</p>
+
+<table nosave="#101090" border="1" width="706">
+  <tbody><tr>
+    <td width="205"><strong>选项</strong> </td>
+    <td width="116"><strong>参数类型</strong> </td>
+    <td width="367"><strong>功能</strong> </td>
+  </tr>
+  <tr>
+    <td width="205"><code>MYSQL_OPT_CONNECT_TIMEOUT</code> </td>
+    <td width="116"><code>unsigned int *</code> </td>
+    <td width="367">以秒计的连接超时。 </td>
+  </tr>
+  <tr>
+    <td width="205"><code>MYSQL_OPT_COMPRESS</code> </td>
+    <td width="116">不使用</td>
+    <td width="367">使用压缩的客户机/服务器协议。 </td>
+  </tr>
+  <tr>
+    <td width="205"><code>MYSQL_OPT_NAMED_PIPE</code> </td>
+    <td width="116">不使用</td>
+    <td width="367">使用命名管道连接一个在NT上的<strong>MySQL</strong>服务器。 
+    </td>
+  </tr>
+  <tr>
+    <td width="205"><code>MYSQL_INIT_COMMAND</code> </td>
+    <td width="116"><code>char *</code> </td>
+    <td width="367">当连接<strong>MySQL</strong>服务器时执行的命令。当重新连接时，将自动重新执行。 
+    </td>
+  </tr>
+  <tr>
+    <td width="205"><code>MYSQL_READ_DEFAULT_FILE</code> </td>
+    <td width="116"><code>char *</code> </td>
+    <td width="367">从命名的选项文件而不是从<tt>“my.cnf”</tt>读取选项。</td>
+  </tr>
+  <tr>
+    <td width="205"><code>MYSQL_READ_DEFAULT_GROUP</code> </td>
+    <td width="116"><code>char *</code> </td>
+    <td width="367">从<tt>“my.cnf”</tt>或用<code>MYSQL_READ_DEFAULT_FILE</code>指定的文件中的命名组中读取选项。</td>
+  </tr>
+</tbody></table>
+
+<p>注意，如果你使用<code>MYSQL_READ_DEFAULT_FILE</code>或<code>MYSQL_READ_DEFAULT_GROUP</code>，总是读取<code>client</code>。</p>
+
+<p>在选项文件中指定的组可能包含下列选项：</p>
+
+<table nosave="#101090" class="p4" border="1" width="100%">
+  <tbody><tr>
+    <td><code>compress</code> </td>
+    <td>使用压缩的客户机/服务器协议。 </td>
+  </tr>
+  <tr>
+    <td><code>database</code> </td>
+    <td>如果在连接命令中没有指定数据库，使用这个数据库。</td>
+  </tr>
+  <tr>
+    <td><code>debug</code> </td>
+    <td>调试选项</td>
+  </tr>
+  <tr>
+    <td><code>host</code> </td>
+    <td>缺省主机名</td>
+  </tr>
+  <tr>
+    <td><code>init-command</code> </td>
+    <td>在连接<strong>MySQL</strong>服务器时，执行的命令。当重新连接时，将自动重新执行。 
+    </td>
+  </tr>
+  <tr>
+    <td><code>password</code> </td>
+    <td>缺省口令</td>
+  </tr>
+  <tr>
+    <td><code>pipe</code> </td>
+    <td>使用命名管道连接一个在NT上的<strong>MySQL</strong>服务器。 </td>
+  </tr>
+  <tr>
+    <td><code>port</code> </td>
+    <td>缺省端口号</td>
+  </tr>
+  <tr>
+    <td><code>return-found-rows</code> </td>
+    <td>告诉<code>mysql_info()</code>返回找到的行，而不是在使用<code>UPDATE</code>时，返回更新的行。 
+    </td>
+  </tr>
+  <tr>
+    <td><code>socket</code> </td>
+    <td>缺省套接字号</td>
+  </tr>
+  <tr>
+    <td><code>timeout</code> </td>
+    <td>以秒计的连接超时。 </td>
+  </tr>
+  <tr>
+    <td><code>user</code> </td>
+    <td>缺省用户</td>
+  </tr>
+</tbody></table>
+
+<p>对于选项文件的更多信息，见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Installing.html#Option_files">4.15.4 
+选项文件</a>。</p>
+
+<h4>20.4.37.2 返回值</h4>
+
+<p>成功，零。如果你使用了未知的选项，非零。</p>
+
+<h4>20.4.37.3 范例</h4>
+
+<pre>MYSQL mysql;
+
+mysql_init(&amp;mysql);
+mysql_options(&amp;mysql,MYSQL_OPT_COMPRESS,0);
+mysql_options(&amp;mysql,MYSQL_READ_DEFAULT_GROUP,"odbc");
+if (!mysql_real_connect(&amp;mysql,"host","user","passwd","database",0,NULL,0))
+{
+    fprintf(stderr, "Failed to connect to database: Error: %s\n",
+          mysql_error(&amp;mysql));
+}
+</pre>
+
+<p>上例请求客户使用压缩的客户机/服务器协议并且从<code>my.cnf</code>文件的<code>odbc</code>小节读取额外的选项。</p>
+
+<p><a name="IDX761"></a></p>
+
+<h3><a name="mysql_ping" style="">20.4.38<code> mysql_ping()</code></a></h3>
+
+<p><code>int mysql_ping(MYSQL *mysql)</code> </p>
+
+<h4>20.4.38.1 说明</h4>
+
+<p>检查到服务器的连接是否正在工作。如果它关闭了，自动尝试一个再连接。</p>
+
+<p>这个函数可被已经空闲很长时间的客户使用，来检查服务器是否关闭了连接并且如有必要重新连接。 
+</p>
+
+<h4>20.4.38.2 返回值</h4>
+
+<p>如果服务器活着，零。如果出现一个错误，非零。</p>
+
+<h4>20.4.38.3 错误</h4>
+
+<dl compact="mysql_ping">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_query" style="">20.4.39<code> mysql_query()</code></a></h3>
+
+<p><code>int mysql_query(MYSQL *mysql, const char *query)</code> </p>
+
+<h4>20.4.39.1 说明</h4>
+
+<p>执行指向空终止的字符串<code>query</code>的SQL查询，查询必须由一个单个的SQL语句组成。你不应该在语句后加上一个终止的分号(<samp>“；”</samp>)或<code>\g</code>。</p>
+
+<p><code>mysql_query()</code>不能被用于包含二进制数据的查询；相反你应该使用<code>mysql_real_query()</code>。（二进制数据可能包含<samp>“\0”</samp>字符，而<code>mysql_query()</code>将解释为查询字符串的结束。）</p>
+
+<h4>20.4.39.2 返回值</h4>
+
+<p>如果查询成功，零。如果出现一个错误，非零。</p>
+
+<h4>20.4.39.3 错误</h4>
+
+<dl compact="mysql_query">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>到服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_real_connect" style="">20.4.40<code> 
+mysql_real_connect()</code></a></h3>
+
+<p><code>MYSQL *mysql_real_connect(MYSQL *mysql, const char *host, const char *user, const 
+char *passwd, const char *db, unsigned int port, const char *unix_socket, unsigned int 
+client_flag)</code> </p>
+
+<h4>20.4.40.1 说明</h4>
+
+<p><code>mysql_real_connect()</code>试图建立到运行<code>host</code>的一个<strong>MySQL</strong>数据库引擎的一个连接。 
+<code>mysql_real_connect()</code>在你可以执行任何其他API函数之前必须成功地完成，除了<code>mysql_get_client_info()</code>。</p>
+
+<p>参数指定如下： 
+
+</p><ul>
+  <li>第一个参数应该是一个现存<code>MYSQL</code>结构的地址。在调用<code>mysql_real_connect()</code>之前，你必须调用<code>mysql_init()</code>初始化<code>MYSQL</code>结构。见下面的例子。 
+  </li>
+  <li><code>host</code>值可以是一个主机名或一个IP地址。如果<code>host</code>是<code>NULL</code>或字符串<code>"localhost"</code>，假定是到本地主机的一个连接。如果OS支持套接字(Unix)或命名管道(Win32)，使用他们而不是TCP/IP与服务器连接。</li>
+  <li><code>user</code>参数包含用户的<strong>MySQL</strong>登录ID。如果<code>user</code>是<code>NULL</code>，假定是当前用户。在Unix下，它是当前登录名。在Windows 
+    ODBC下，必须明确地指定当前用户名字。见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_ODBC.html#ODBC_administrator">16.4 怎样填写ODBC管理程序中各种域</a>。 
+  </li>
+  <li><code>passwd</code>参数为<code>user</code>包含口令。如果<code>passwd</code>是<code>NULL</code>，只有在<code>user</code>表中对于有一个空白口令字段的用户的条目将被检查一个匹配。这允许数据库主管设置<strong>MySQL</strong>权限，使用户获得不同的口令，取决于他们是否已经指定一个口令。注意：不要试图在调用<code>mysql_real_connect()</code>前加密口令；口令加密自动被客户API处理。</li>
+  <li><code>db</code>是数据库名。如果<code>db</code>不是<code>NULL</code>，连接将缺省数据库设置为这个值。</li>
+  <li>如果<code>port</code>不是0，值对于TCP/IP连接将用作端口号。注意<code>host</code>参数决定连接的类型。</li>
+  <li>如果<code>unix_socket</code>不是<code>NULL</code>，字符串指定套接字或应该被使用的命名管道。注意<code>host</code>参数决定连接的类型。</li>
+  <li><code>client_flag</code>值通常是0，但是在很特殊的情况下可以被设置为下列标志的组合：<table nosave="#101090" class="p4" border="1" width="100%">
+      <tbody><tr>
+        <td><strong>标志名字</strong> </td>
+        <td><strong>意味着的标志</strong> </td>
+      </tr>
+      <tr>
+        <td><code>CLIENT_FOUND_ROWS</code> </td>
+        <td>返回找到的(匹配的)行数，不是受到影响的行数。</td>
+      </tr>
+      <tr>
+        <td><code>CLIENT_NO_SCHEMA</code> </td>
+        <td>不允许<code>db_name.tbl_name.col_name</code>语法。这是为了ODBC；如果你使用该语法，导致语法分析器产生一个错误，它是为在一些ODBC程序捕捉错误是有用的。 
+        </td>
+      </tr>
+      <tr>
+        <td><code>CLIENT_COMPRESS</code> </td>
+        <td>使用压缩协议。</td>
+      </tr>
+      <tr>
+        <td><code>CLIENT_ODBC</code> </td>
+        <td>客户是一个ODBC客户。这使<code>mysqld</code>变得对ODBC更友好。 </td>
+      </tr>
+    </tbody></table>
+  </li>
+</ul>
+
+<h4>20.4.40.2 返回值</h4>
+
+<p>如果连接成功，一个 <code>MYSQL*</code>连接句柄。如果连接失败，<code>NULL</code>。对一个成功的连接，返回值与第一个参数值相同，除非你传递<code>NULL</code>给该参数。</p>
+
+<h4>20.4.40.3 错误</h4>
+
+<dl compact="manual_ODBC.html#ODBC_administrator">
+  <dt><code>CR_CONN_HOST_ERROR</code> </dt>
+  <dd>不能连接<strong>MySQL</strong>服务器。 </dd>
+  <dt><code>CR_CONNECTION_ERROR</code> </dt>
+  <dd>不能连接本地<strong>MySQL</strong>服务器。 </dd>
+  <dt><code>CR_IPSOCK_ERROR</code> </dt>
+  <dd>不能创建一个IP套接字。 </dd>
+  <dt><code>CR_OUT_OF_MEMORY</code> </dt>
+  <dd>内存溢出。 </dd>
+  <dt><code>CR_SOCKET_CREATE_ERROR</code> </dt>
+  <dd>不能创建一个Unix套接字。 </dd>
+  <dt><code>CR_UNKNOWN_HOST</code> </dt>
+  <dd>不能找到主机名的IP地址。 </dd>
+  <dt><code>CR_VERSION_ERROR</code> </dt>
+  <dd>由于试图使用一个不同协议版本的一个客户库与一个服务器连接导致的一个协议失配。如果你使用一个非常老的客户库连接一个没有使用<code>--old-protocol</code>选项启动的新服务器，这就能发生。 
+  </dd>
+  <dt><code>CR_NAMEDPIPEOPEN_ERROR;</code> </dt>
+  <dd>不能在 Win32 上创建一个命名管道。 </dd>
+  <dt><code>CR_NAMEDPIPEWAIT_ERROR;</code> </dt>
+  <dd>不能在 Win32 上等待一个命名管道。 </dd>
+  <dt><code>CR_NAMEDPIPESETSTATE_ERROR;</code> </dt>
+  <dd>不能在 Win32 上得到一个管道处理器。</dd>
+</dl>
+
+<h4>20.4.40.4 范例</h4>
+
+<pre>MYSQL mysql;
+
+mysql_init(&amp;mysql);
+if (!mysql_real_connect(&amp;mysql,"host","user","passwd","database",0,NULL,0))
+{
+    fprintf(stderr, "Failed to connect to database: Error: %s\n",
+          mysql_error(&amp;mysql));
+}
+</pre>
+
+<h3><a name="mysql_real_query" style="">20.4.41<code> 
+mysql_real_query()</code></a></h3>
+
+<p><code>int mysql_real_query(MYSQL *mysql, const char *query, unsigned int length)</code> 
+</p>
+
+<h4>20.4.41.1 说明</h4>
+
+<p>执行由<code>query</code>指向的SQL查询，它应该是一个<code>length</code>个字节的字符串。查询必须由一个单个的SQL语句组成。你不应该在语句后增加一个终止的分号(<samp>“;”</samp>)或<code>\g</code>。</p>
+
+<p>对于包含二进制数据的查询，你<em>必须</em>使用<code>mysql_real_query()</code>而不是<code>mysql_query()</code>，因为二进制代码数据可能包含<samp>“\0”</samp>字符，而且，<code>mysql_real_query()</code>比<code>mysql_query()</code>更快，因为它对查询字符串调用<code>strlen()</code>。</p>
+
+<h4>20.4.41.2 返回值</h4>
+
+<p>如果查询成功，零。如果发生一个错误，非零。</p>
+
+<h4>20.4.41.3 错误</h4>
+
+<dl compact="mysql_real_query">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。</dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_reload" style="">20.4.42<code> 
+mysql_reload()</code></a></h3>
+
+<p><code>int mysql_reload(MYSQL *mysql)</code> </p>
+
+<h4>20.4.42.1 说明</h4>
+
+<p>要求<strong>MySQL</strong>服务器再次装载授权表。连接的用户必须拥有<strong>reload</strong>权限。 
+</p>
+
+<p>不推荐这个函数。最好使用<code>mysql_query()</code>发出一条SQL<code> 
+FLUSH PRIVILEGES</code>语句。</p>
+
+<h4>20.4.42.2 返回值</h4>
+
+<p>成功，零。如果发生一个错误，非零。</p>
+
+<h4>20.4.42.3 错误</h4>
+
+<dl compact="mysql_reload">
+  <dt>　</dt>
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。</dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_row_seek" style="">20.4.43<code> 
+mysql_row_seek()</code></a></h3>
+
+<p><code>MYSQL_ROW_OFFSET mysql_row_seek(MYSQL_RES *result, MYSQL_ROW_OFFSET offset)</code> 
+</p>
+
+<h4>20.4.43.1 说明</h4>
+
+<p>设置行光标为在结果集合中的任意行。这要求结果集合结构包含查询的全部结果，这样<code>mysql_row_seek()</code>只能与<code>mysql_store_result()</code>一起使用，而不与<code>mysql_use_result()</code>。</p>
+
+<p>偏移量应该是调用<code>mysql_row_tell()</code>或<code>mysql_row_seek()</code>返回的值。这个值不是简单地一个行号；如果你想要在结果集合内用行号来寻找行，使用<code>mysql_data_seek()</code>。</p>
+
+<h4>20.4.43.2 返回值</h4>
+
+<p>行光标先前的值。该值可以被传递给随后的<code>mysql_row_seek()</code>调用。</p>
+
+<h4>20.4.43.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX767"></a></p>
+
+<h3><a name="mysql_row_tell" style="">20.4.44<code> 
+mysql_row_tell()</code></a></h3>
+
+<p><code>MYSQL_ROW_OFFSET mysql_row_tell(MYSQL_RES *result)</code> </p>
+
+<h4>20.4.44.1 说明</h4>
+
+<p>返回为了<code>mysql_fetch_row()</code>的行光标的当前位置。这个值可以作为一个参数用于<code>mysql_row_seek()</code>。 
+</p>
+
+<p>你应该仅在<code>mysql_store_result()</code>后使用<code>mysql_row_tell()</code>，而不是在<code>mysql_use_result()</code>后。</p>
+
+<h4>20.4.44.2 返回值</h4>
+
+<p>行光标当前的偏移量。 </p>
+
+<h4>20.4.44.3 错误</h4>
+
+<p>无。 </p>
+
+<p>　</p>
+
+<h3><a name="mysql_select_db" style="">20.4.45<code> 
+mysql_select_db()</code></a></h3>
+
+<p><code>int mysql_select_db(MYSQL *mysql, const char *db)</code> </p>
+
+<h4>20.4.45.1 说明</h4>
+
+<p>使得由<code>db</code>指定的数据库成为 在由<code>mysql</code>指定的连接上的缺省(当前)数据库。在随后的查询中，这个数据库对于不包括一个显式的数据库指定符的表的引用是缺省数据库。</p>
+
+<p>除非连接的用户能被认证允许使用数据库，<code>否则mysql_select_db()</code>失败。 
+</p>
+
+<h4>20.4.45.2 返回值</h4>
+
+<p>成功，零。如果发生一个错误，非零。</p>
+
+<h4>20.4.45.3 错误</h4>
+
+<dl compact="mysql_select_db">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。</dd>
+</dl>
+
+<p>　</p>
+
+<h3><a name="mysql_shutdown" style="">20.4.46<code> 
+mysql_shutdown()</code></a></h3>
+
+<p><code>int mysql_shutdown(MYSQL *mysql)</code> </p>
+
+<h4>20.4.46.1 说明</h4>
+
+<p>让数据库服务器关闭。连接的用户必须有<strong>shutdown</strong>权限。 
+</p>
+
+<h4>20.4.46.2 返回值</h4>
+
+<p>成功，零。如果出现一个错误，非零</p>
+
+<h4>20.4.46.3 错误</h4>
+
+<dl compact="mysql_shutdown">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。</dd>
+  <dt>　</dt>
+</dl>
+
+<h3><a name="mysql_stat" style="">20.4.47<code> mysql_stat()</code></a></h3>
+
+<p><code>char *mysql_stat(MYSQL *mysql)</code> </p>
+
+<h4>20.4.47.1 说明</h4>
+
+<p>返回包含类似于由<code>mysqladmin status</code>命令提供的信息的一个字符串。它包括正常运行的秒数和正在运行线程、问题、再次装载和打开的表的数目。 
+</p>
+
+<h4>20.4.47.2 返回值</h4>
+
+<p>描述服务器状态的一个字符串。如果出现一个错误，<code>NULL。</code></p>
+
+<h4>20.4.47.3 错误</h4>
+
+<dl compact="mysql_stat">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。</dd>
+</dl>
+
+<p><a name="IDX771"></a> </p>
+
+<h3><a name="mysql_store_result" style="">20.4.48<code> 
+mysql_store_result()</code></a></h3>
+
+<p><code>MYSQL_RES *mysql_store_result(MYSQL *mysql)</code> </p>
+
+<h4>20.4.48.1 说明</h4>
+
+<p>对于成功地检索数据的每个询问(<code>SELECT</code>、<code>SHOW</code>、<code>DESCRIBE</code>、<code>EXPLAIN</code>)，你必须调用<code>mysql_store_result()</code>或<code>mysql_use_result()</code>。</p>
+
+<p><code>mysql_store_result()</code>读取一个到客户的查询的全部结果，分配一个<code>MYSQL_RES</code>结构，并且把结果放进这个结构中。 
+</p>
+
+<p>如果没有行返回，返回一个空集合集合。（空结果集合不同于一个<code>NULL</code>返回值。）</p>
+
+<p>一旦你调用了<code>mysql_store_result()</code>，你可以调用<code>mysql_num_rows()</code>找出结果集合中有多少行。</p>
+
+<p>你能调用<code>mysql_fetch_row()</code>从结果集合中取出行，或<code>mysql_row_seek()</code>和<code>mysql_row_tell()</code>结果集合中获得或设置当前的行位置。 
+</p>
+
+<p>一旦你用完结果集合，你必须调用<code>mysql_free_result()</code>。</p>
+
+<p>见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Clients.html#NULL_mysql_store_result">20.4.51 为什么<code>mysql_query()</code>返回成功后，<code>mysql_store_result()</code>有时返回<code>NULL?</code></a>。</p>
+
+<h4>20.4.48.2 返回值</h4>
+
+<p>一个保存结果的<code>MYSQL_RES</code>结构。如果出现一个错误，<code>NULL</code>。</p>
+
+<h4>20.4.48.3 错误</h4>
+
+<dl compact="manual_Clients.html#NULL_mysql_store_result">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_OUT_OF_MEMORY</code> </dt>
+  <dd>内存溢出。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<p><a name="IDX772"></a> </p>
+
+<h3><a name="mysql_thread_id" style="">20.4.49<code> 
+mysql_thread_id()</code></a></h3>
+
+<p><code>unsigned long mysql_thread_id(MYSQL *mysql)</code> </p>
+
+<h4>20.4.49.1 说明</h4>
+
+<p>返回当前连接的线程ID。这个值可用作<code>mysql_kill()</code>的一个参数以杀死线程。</p>
+
+<p>如果失去连接并且你用<code>mysql_ping()</code>重新连接，线程ID将改变。这意味着你不应该为以后使用获得线程ID并且存储它，当你需要它时，你应该获得它。</p>
+
+<h4>20.4.49.2 返回值</h4>
+
+<p>当前连接的线程 ID 。 </p>
+
+<h4>20.4.49.3 错误</h4>
+
+<p>无。 </p>
+
+<p><a name="IDX773"></a> </p>
+
+<h3><a name="mysql_use_result" style="">20.4.50<code> 
+mysql_use_result()</code></a></h3>
+
+<p><code>MYSQL_RES *mysql_use_result(MYSQL *mysql)</code> </p>
+
+<h4>20.4.50.1 说明</h4>
+
+<p>对于成功地检索数据的每个查询(<code>SELECT</code>、<code>SHOW</code>、<code>DESCRIBE</code>、<code>EXPLAIN</code>)，你必须调用<code>mysql_store_result()</code>或<code>mysql_use_result()</code>。</p>
+
+<p><code>mysql_use_result()</code>初始化一个结果集合的检索，但不真正将结果集合读入客户，就象<code>mysql_store_result()</code>那样。相反，必须通过调用<code>mysql_fetch_row()</code>单独检索出每一行，这直接从服务器读出结果而不在一个临时表或本地缓冲区中存储它，它比<code>mysql_store_result()</code>更快一点并且使用较少的内存。客户将只为当前行和一个可能最大<code>max_allowed_packet</code>字节的通信缓冲区分配内存。</p>
+
+<p>在另一方面，如果你在客户端对每一行正在做很多的处理，或如果输出被送到屏幕，用户可以打一个<code>^S</code>（停止滚动)，你不应该使用<code>mysql_use_result()</code>。这将阻塞服务器并且阻止另外的线程从数据被取出的任何表中更新数据。 
+</p>
+
+<p>当使用<code>mysql_use_result()</code>时，你必须执行<code>mysql_fetch_row()</code>直到返回一个<code>NULL</code>值，否则未取出的行将作为下一个查询的结果集合一部分被返回。如果你忘记做这个，C 
+API将给出错误<code>Commands out of sync; You can't run this command now</code>！</p>
+
+<p>你不能在一个从<code>mysql_use_result()</code>返回的结果集合上使用<code>mysql_data_seek()</code>、<code>mysql_row_seek()</code>、<code>mysql_row_tell()</code>、<code>mysql_num_rows()</code>或<code>mysql_affected_rows()</code>，你也不能发出另外的查询直到<code>mysql_use_result()</code>完成。（然而，在你取出所有的行以后，<code>mysql_num_rows()</code>将精确地返回取出的行数。）</p>
+
+<p>一旦你用完结果集合，你必须调用<code>mysql_free_result()</code>。 </p>
+
+<h4>20.4.50.2 返回值</h4>
+
+<p>一个<code>MYSQL_RES</code>结果结构。 如果发生一个错误发生，<code>NULL。</code></p>
+
+<h4>20.4.50.3 错误</h4>
+
+<dl compact="mysql_use_result">
+  <dt><code>CR_COMMANDS_OUT_OF_SYNC</code> </dt>
+  <dd>命令以一个不适当的次序被执行。 </dd>
+  <dt><code>CR_OUT_OF_MEMORY</code> </dt>
+  <dd>内存溢出。 </dd>
+  <dt><code>CR_SERVER_GONE_ERROR</code> </dt>
+  <dd><strong>MySQL</strong>服务器关闭了。 </dd>
+  <dt><code>CR_SERVER_LOST</code> </dt>
+  <dd>对服务器的连接在查询期间失去。 </dd>
+  <dt><code>CR_UNKNOWN_ERROR</code> </dt>
+  <dd>发生一个未知的错误。 </dd>
+</dl>
+
+<h3><a name="NULL_mysql_store_result" style="">20.4.51 
+为什么在<code>mysql_query()</code>返回成功后，<code>mysql_store_result()</code>有时返回<code>NULL?</code></a></h3>
+
+<p>有可能在一个对<code>mysql_query()</code>成功的调用后，<code>mysql_store_result()</code>返回<code>NULL</code>。当这发生时，它意味着出现了下列条件之一： 
+
+</p><ul>
+  <li>有一个<code>malloc()</code>失败(例如，如果结果集合太大)。 </li>
+  <li>数据不能被读取(发生在连接上的一个错误)。 </li>
+  <li>查询没有返回数据(例如，它是一个<code>INSERT</code>、<code>UPDATE</code>或<code>DELETE</code>)。 
+  </li>
+</ul>
+
+<p>你总是可以通过调用<code>mysql_field_count()</code>检查语句是否应该产生非空的结果。如果<code>mysql_field_count()</code>返回零，结果是空的并且最后一个查询是不回值的一条语句(例如，一条<code>INSERT</code>或<code>DELETE</code>)。如果<code>mysql_field_count()</code>返回非零值，语句应该产生非空的结果。见对<code>mysql_field_count()</code>描述的一个例子。 
+</p>
+
+<p>你可以调用<code>mysql_error()</code>或<code>mysql_errno()</code>测试一个错误。</p>
+
+<h3><a name="Query_results" style="">20.4.52 
+我能从查询中得到什么结果？</a></h3>
+
+<p>除了由查询返回的结果集合外，你也能得到下列信息： 
+
+</p><ul>
+  <li>当执行一条<code>INSERT</code>、<code>UPDATE</code>或<code>DELETE</code>时，<code>mysql_affected_rows()</code>返回受到最后一个查询影响的行数。一个例外是如果使用一条没有<code>WHERE</code>子句的<code>DELETE</code>，表被截断，它更快！在这种情况下，<code>mysql_affected_rows()</code>对于影响的记录数量返回零。</li>
+  <li><code>mysql_num_rows()</code>返回结果集合中的行数。用<code>mysql_store_result()</code>，一旦<code>mysql_store_result()</code>返回，就可以调用<code>mysql_num_rows()</code>。用<code>mysql_use_result()</code>，只有在你已经用<code>mysql_fetch_row()</code>取出了所有行后，才能调用<code>mysql_num_rows()</code>。</li>
+  <li><code>mysql_insert_id()</code>返回由将一行插入一个具有<code>AUTO_INCREMENT</code>索引的表中的最后查询生成的ID。见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Clients.html#mysql_insert_id">20.4.29<code> mysql_insert_id()</code></a>。</li>
+  <li>某些查询(<code>LOAD DATA INFILE ...</code>、<code>INSERT INTO ... SELECT ...</code>、UPDATE)返回附加的信息。结果由返<code>mysql_info()</code>返回。对其返回字符串的格式，见<code>mysql_info()</code>的描述。如果没有附加的信息，<code>mysql_info()</code>返回一个<code>NULL</code>指针。 
+  </li>
+</ul>
+
+<h3><a name="Getting_unique_ID" style="">20.4.53 
+我怎样能得到最后插入的行的唯一ID？</a></h3>
+
+<p>如果你往包含一个具有<code>AUTO_INCREMENT</code>属性的列的一张表中插入一个记录，你能通过<code>mysql_insert_id()</code>函数获得最近生成的ID。</p>
+
+<p>你也可以通过在你传递给<code>mysql_query()</code>的一个查询字符串中使用<code>LAST_INSERT_ID()</code>函数检索出ID。</p>
+
+<p>你可以执行下列代码检查是否使用一个<code>AUTO_INCREMENT</code>索引。这也检查查询是否是有一个<code>AUTO_INCREMENT</code>索引的一条<code>INSERT：</code></p>
+
+<pre>if (mysql_error(&amp;mysql)[0] == 0 &amp;&amp;
+    mysql_num_fields(result) == 0 &amp;&amp;
+    mysql_insert_id(&amp;mysql) != 0)
+{
+    used_id = mysql_insert_id(&amp;mysql);
+}
+</pre>
+
+<p>最近产生的ID是在一个按连接的基础上在服务器上进行维护，它将不被其他客户改变。如果你更新另外一个有非奇特(non-magic)值(即一个既不是<code>NULL</code>也不是<code>0</code>的值)的<code>AUTO_INCREMENT</code>列，它甚至将不被改变。</p>
+
+<p>如果你想要使用为一张表生成的ID并且把它插入到第2张表，你可以使用象这样的SQL语句：</p>
+
+<pre>INSERT INTO foo (auto,text)
+    VALUES(NULL,'text');              # generate ID by inserting NULL
+INSERT INTO foo2 (id,text)
+    VALUES(LAST_INSERT_ID(),'text');  # use ID in second table
+</pre>
+
+<h3><a name="C_API_linking_problems" style="">20.4.54 
+链接C API的问题</a></h3>
+
+<p>当与C API链接时，下列错误可能发生一些系统上：</p>
+
+<pre>gcc -g -o client test.o -L/usr/local/lib/mysql -lmysqlclient -lsocket -lnsl
+
+Undefined        first referenced
+ symbol          in file
+floor            /usr/local/lib/mysql/libmysqlclient.a(password.o)
+ld: fatal: Symbol referencing errors. No output written to client
+</pre>
+
+<p>如果它发生在你的系统上，你必须通过在编译/链接命令行的最后增加<code>-lm</code>以包括数学库。</p>
+
+<h3><a name="Thread-safe_clients" style="">20.4.55 
+怎样制作一个线程安全的客户</a></h3>
+
+<p>客户“几乎”是线程安全的。最大的问题是在从套接字读取的<tt>“net.c”</tt>中的子程序不是中断安全的(interruot-safe)。这样做是这样考虑的，即你可能想有你自己的报警来中断一个长时间的读取服务器。</p>
+
+<p>标准客户库没有用线程选项来编译。</p>
+
+<p>为了获得一个线程安全的客户，使用<code>-lmysys</code>, <code>-lstring</code>和<code>-ldbug</code>库和服务器使用的<code>net_serv.o</code>。</p>
+
+<p>当使用一个线程化的客户时，你可以充分利用在<tt>“thr_alarm.c”</tt>文件中的函数。如果你正在使用来自<code>mysys</code>库的函数，你唯一必须记住的是首先调用<code>my_init()</code>！</p>
+
+<p>所有函数除了<code>mysql_real_connect()</code>目前是线程安全的。下列注意事项描述怎样编译一个线程安全的客户库并且以一种线程安全的方式使用它。（下面对<code>mysql_real_connect()</code>的注意事项实际上也适用于<code>mysql_connect()</code>，但是因为<code>mysql_connect()</code>不提倡使用，无论如何你应该使用<code>mysql_real_connect()</code>。）</p>
+
+<p>为了使<code>mysql_real_connect()</code>是线程安全的，你必须用这个命令重新编译客户库：</p>
+
+<pre>shell&gt; CPPFLAGS=-DTHREAD_SAFE_CLIENT ./configure ...
+</pre>
+
+<p>当链接标准客户时，你可能得到的某些因为未定义符号的错误，因为pthread库没有被缺省地包括。</p>
+
+<p>最终的<tt>“libmysqlclient.a”</tt>库现在是线程安全的。它的含义是只要2个线程不同时查询<code>mysql_real_connect()</code>返回的同一个连接句柄，客户代码是线程安全的；客户机/服务器协议在一个给定的连接上一次只允许一个请求。如果你想在同一个的连接上使用多个线程，你必须在<code>mysql_query()</code>和<code>mysql_store_result()</code>调用组合附近有一个mutex锁定。一旦<code>mysql_store_result()</code>就绪，锁可以被释放并且其他线程可以查询同一个连接。（换句话说，不同的线程能使用不同被<code>mysql_store_result()</code>创建的<code>MYSQL_RES</code>指针，只要他们使用适当的锁定协议) 
+如果你用POSIX线程编程，你能使用<code>pthread_mutex_lock()</code>和<code>pthread_mutex_unlock()</code>建立并且释放一个mutex锁定。</p>
+
+<p>如果你使用<code>mysql_use_result()</code>而不是<code>mysql_store_result()</code>，锁定将需要包围<code>mysql_use_result()</code>和<code>mysql_fetch_row()</code>的调用，然而，它确实对不使用<code>mysql_use_result()</code>线程客户是最好的。</p>
+
+<h2><a name="Perl" style="">20.5 MySQL Perl API</a></h2>
+
+<p>本节记载了Perl<code> DBI</code>接口。以前的接口被称为<code>mysqlperl</code>。因为<code>DBI</code>/<code>DBD</code>现在是推荐的Perl接口，<code>mysqlperl</code>是过时的并且不在这里记载。</p>
+
+<h3><a name="DBI_with_DBD" style="">20.5.1<code> DBI</code>与<code>DBD::mysql</code></a></h3>
+
+<p><code>DBI</code>是对于很多数据库的一个通用接口。这意味着你能编写一个脚本，不用改变就能工作于很多数据库引擎。你需要为每种数据库类型定义了的一个数据库驱动程序(DBD)。对于<strong>MySQL</strong>，该驱动程序称为<code>DBD::mysql</code>。 
+</p>
+
+<p>有关Perl5 DBI的更多信息，请访问<code>DBI</code>网页并且阅读文档： </p>
+
+<pre><a href="http://www.symbolstone.org/technology/perl/DBI/index.html">http://www.symbolstone.org/technology/perl/DBI/index.html</a>
+</pre>
+
+<p>关于在Perl5定义的面向对象的编程(OOP)的更多信息，参见Perl OOP页： 
+</p>
+
+<pre><a href="http://language.perl.com/info/documentation.html">http://language.perl.com/info/documentation.html</a>
+</pre>
+
+<p>对于<strong>MySQL</strong> Perl支持的安装指令在<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Installing.html#Perl_support">4.10 Perl安装说明</a>中给出。</p>
+
+<p><a name="IDX774"></a> </p>
+
+<h3><a name="Perl_DBI_Class" style="">20.5.2 <code>DBI</code>接口</a></h3>
+
+<p><strong>可移植的DBI方法</strong> </p>
+
+<table nosave="#101090" class="p4" border="1" width="100%">
+  <tbody><tr>
+    <td><code>connect</code> </td>
+    <td>建立到一个数据库服务器的连接</td>
+  </tr>
+  <tr>
+    <td><code>disconnect</code> </td>
+    <td>断开数据库服务器的连接</td>
+  </tr>
+  <tr>
+    <td><code>prepare</code> </td>
+    <td>准备执行一个SQL语句</td>
+  </tr>
+  <tr>
+    <td><code>execute</code> </td>
+    <td>执行准备好的语句</td>
+  </tr>
+  <tr>
+    <td><code>do</code> </td>
+    <td>准备并执行一个SQL语句</td>
+  </tr>
+  <tr>
+    <td><code>quote</code> </td>
+    <td>加引号于要插入的字符串或<code>BLOB</code>值</td>
+  </tr>
+  <tr>
+    <td><code>fetchrow_array</code> </td>
+    <td>作为一个字段数组取出下一行 </td>
+  </tr>
+  <tr>
+    <td><code>fetchrow_arrayref</code> </td>
+    <td>作为一个字段的引用数组取出下一行</td>
+  </tr>
+  <tr>
+    <td><code>fetchrow_hashref</code> </td>
+    <td>作为一个哈希表的引用取出下一行</td>
+  </tr>
+  <tr>
+    <td><code>fetchall_arrayref</code> </td>
+    <td>作为一个字段数组取出所有数据</td>
+  </tr>
+  <tr>
+    <td><code>finish</code> </td>
+    <td>完成一条语句并且让系统释放资源</td>
+  </tr>
+  <tr>
+    <td><code>rows</code> </td>
+    <td>返回受影响的行数</td>
+  </tr>
+  <tr>
+    <td><code>data_sources</code> </td>
+    <td>返回可在localhost上得到的数据库的数组</td>
+  </tr>
+  <tr>
+    <td><code>ChopBlanks</code> </td>
+    <td>控制<code>fetchrow_*</code>方法是否剥去空格</td>
+  </tr>
+  <tr>
+    <td><code>NUM_OF_PARAMS</code> </td>
+    <td>在准备的语句中的占位（placeholder-参数）的数目</td>
+  </tr>
+  <tr>
+    <td><code>NULLABLE</code> </td>
+    <td>其列可以是<code>NULL</code> </td>
+  </tr>
+  <tr>
+    <td><code>trace</code> </td>
+    <td>执行调试跟踪</td>
+  </tr>
+</tbody></table>
+
+<p><strong>MySQL特定的方法</strong> </p>
+
+<table nosave="#101090" class="p4" border="1" width="100%">
+  <tbody><tr>
+    <td><code>insertid</code> </td>
+    <td>最后一个<code>AUTO_INCREMENT</code>值</td>
+  </tr>
+  <tr>
+    <td><code>is_blob</code> </td>
+    <td>该列是<code>BLOB</code>值</td>
+  </tr>
+  <tr>
+    <td><code>is_key</code> </td>
+    <td>该列是键</td>
+  </tr>
+  <tr>
+    <td><code>is_num</code> </td>
+    <td>该列是数字的</td>
+  </tr>
+  <tr>
+    <td><code>is_pri_key</code> </td>
+    <td>该列是主键</td>
+  </tr>
+  <tr>
+    <td><code>is_not_null</code> </td>
+    <td>该列不能是<code>NULL</code>，见<code>NULLABLE</code>。 </td>
+  </tr>
+  <tr>
+    <td><code>length</code> </td>
+    <td>最大可能的列大小</td>
+  </tr>
+  <tr>
+    <td><code>max_length</code> </td>
+    <td>结果中实际上存在的最大列大小</td>
+  </tr>
+  <tr>
+    <td><code>NAME</code> </td>
+    <td>列名字</td>
+  </tr>
+  <tr>
+    <td><code>NUM_OF_FIELDS</code> </td>
+    <td>返回的字段数目</td>
+  </tr>
+  <tr>
+    <td><code>table</code> </td>
+    <td>在返回的集合中的表名</td>
+  </tr>
+  <tr>
+    <td><code>type</code> </td>
+    <td>所有的列类型</td>
+  </tr>
+</tbody></table>
+
+<p>Perl方法在下一节更详细地描述。用于方法返回值的变量有这些含义： 
+
+</p><dl compact="Perl_DBI_Class">
+  <dt><code>$dbh</code> </dt>
+  <dd>数据库句柄</dd>
+  <dt><code>$sth</code> </dt>
+  <dd>语句句柄</dd>
+  <dt><code>$rc</code> </dt>
+  <dd>返回代码 (经常是一个状态）</dd>
+  <dt><code>$rv</code> </dt>
+  <dd>返回值 (经常是一个行数）</dd>
+</dl>
+
+<p><strong>可移植DBI方法</strong> 
+
+</p><dl compact="Perl_DBI_Class">
+  <dt><code>connect($data_source, $username, $password)</code> </dt>
+  <dd><a name="IDX775"></a>使用<code>connect</code>方法使得一个数据库连接到数据源。<code>$data_source</code>值应该以<code>DBI:driver_name:</code>开始。以<code>DBD::mysql</code>驱动程序使用<code>connect的例子：</code><pre>$dbh = DBI-&gt;connect("DBI:mysql:$database", $user, $password);
+$dbh = DBI-&gt;connect("DBI:mysql:$database:$hostname",
+                    $user, $password);
+$dbh = DBI-&gt;connect("DBI:mysql:$database:$hostname:$port",
+                    $user, $password);
+</pre>
+    <p>如果用户名或口令未定义，<code>DBI</code>分别使用<code>DBI_USER</code>和<code>DBI_PASS</code>环境变量的值。如果你不指定主机名，它缺省<code>为'localhost'</code>。如果你不指定一个端口号，它缺省为<strong>MySQL</strong>的缺省端口(3306)。对<code>Msql-Mysql-modules</code>版本1.2009，<code>$data_source</code>值允许某些修饰词：</p><dl compact="IDX776">
+      <dt><code>mysql_read_default_file=file_name</code> </dt>
+      <dd>读取作为一个选项文件<tt>的“filename”</tt>。有关选项文件的信息，见<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Installing.html#Option_files">4.15.4 选项文件</a>。</dd>
+      <dt><code>mysql_read_default_group=group_name</code> </dt>
+      <dd>当读取选项文件时的缺省组通常是<code>[client]</code>组。通过指定<code>mysql_read_default_group</code>选项，缺省组变成<code>[group_name]</code>组。</dd>
+      <dt><code>mysql_compression=1</code> </dt>
+      <dd>在客户和服务器之间使用压缩通信(<strong>MySQL</strong> 3.22.3或以后)。</dd>
+      <dt><code>mysql_socket=/path/to/socket</code> </dt>
+      <dd>指定用于与服务器连接的Unix套接字的路径名(<strong>MySQL</strong> 
+        3.21.15或以后)。</dd>
+    </dl>
+    <p>可以给出多个修饰词；每一个必须前置一个分号。例如，如果你想要避免在一个<code>DBI</code>脚本中硬编码用户名和口令，你可以从用户的<tt>“~/.my.cnf”</tt>选项文件中取出它们，而不是这样编写你的<code>connect</code>调用：</p>
+    <pre>$dbh = DBI-&gt;connect("DBI:mysql:$database"
+                . ";mysql_read_default_file=$ENV{HOME}/.my.cnf",
+                $user, $password);
+</pre>
+    <p>这个调用将读取在选项文件中为<code>[client]</code>组而定义的选项。如果你想做同样的事情，但是也使用未<code>[perl]</code>组指定的选项，你可以使用：</p>
+    <pre>$dbh = DBI-&gt;connect("DBI:mysql:$database"
+                . ";mysql_read_default_file=$ENV{HOME}/.my.cnf"
+                . ";mysql_read_default_group=perl",
+                $user, $password);
+<a name="IDX777"></a> <a name="IDX778"></a> </pre>
+  </dd>
+  <dt><code>disconnect</code> </dt>
+  <dd><code>disconnect</code>方法从数据库断开数据库句柄。它一般就在你从程序退出之前被调用。范例：<pre>$rc = $dbh-&gt;disconnect;
+<a name="IDX779"></a> <a name="IDX780"></a> </pre>
+  </dd>
+  <dt><code>prepare($statement)</code> </dt>
+  <dd>准备一条由数据库引擎执行的SQL语句并且返回语句句柄<code>($sth)</code>，你可以使用它调用<code>execute</code>方法。一般地你借助于<code>prepare</code>和<code>execute</code>来处理<code>SELECT</code>语句(和类<code>SELECT</code>语句，例如<code>SHOW</code>、<code>DESCRIBE</code>和<code>EXPLAIN</code>)。范例：<pre>$sth = $dbh-&gt;prepare($statement)
+    or die "Can't prepare $statement: $dbh-&gt;errstr\n";
+<a name="IDX781"></a> <a name="IDX782"></a> </pre>
+  </dd>
+  <dt><code>execute</code> </dt>
+  <dd><code>execute</code>方法执行一个准备好的语句。对非<code>SELECT</code>语句，<code>execute</code>返回受影响的行数。如果没有行受影响，<code>execute</code>返回<code>"0E0"</code>，Perl将它视作零而不是真。对于<code>SELECT</code>语句，<code>execute</code>只是在数据库中启动SQL查询；你需要使用在下面描述的<code>fetch_*</code>方法之一检索数据。范例：<pre>$rv = $sth-&gt;execute
+          or die "can't execute the query: $sth-&gt;errstr;
+<a name="IDX783"></a> <a name="IDX784"></a> </pre>
+  </dd>
+  <dt><code>do($statement)</code> </dt>
+  <dd><code>do</code>方法准备并且执行一条SQL语句并且返回受影响的行数。如果没有行受到影响，<code>do</code>返回<code>"0E0"</code>，Perl将它视为零而不是真。这个方法通常用于事先无法准备好(由于驱动程序的限制)或不需要执行多次(插入、删除等等)的非<code>SELECT</code>语句。范例：<pre>$rv = $dbh-&gt;do($statement)
+        or die "Can't execute $statement: $dbh- &gt;errstr\n";
+<a name="IDX785"></a> <a name="IDX786"></a> <a name="IDX787"></a> <a name="IDX788"></a> </pre>
+  </dd>
+  <dt><code>quote($string)</code> </dt>
+  <dd><code>quote</code>方法被用来“转义”包含在<code>string</code>中的任何特殊字符并增加所需的外部的引号。范例：<pre>$sql = $dbh-&gt;quote($string)
+</pre>
+  </dd>
+  <dt><code>fetchrow_array</code> </dt>
+  <dd>这个方法取下一行数据并且作为一个字段值数组返回它。范例：<pre>while(@row = $sth-&gt;fetchrow_array) {
+        print qw($row[0]\t$row[1]\t$row[2]\n);
+}
+</pre>
+  </dd>
+  <dt><code>fetchrow_arrayref</code> </dt>
+  <dd>这个方法取下一行数据并且作为一个对一个字段值数组的引用返回它。范例：<pre>while($row_ref = $sth-&gt;fetchrow_arrayref) {
+        print qw($row_ref-&gt;[0]\t$row_ref-&gt;[1]\t$row_ref-&gt;[2]\n);
+}
+</pre>
+  </dd>
+  <dt><code>fetchrow_hashref</code> </dt>
+  <dd>这个方法取一行数据并且返回包含字段名/值对的一个哈希表的一个引用。这个方法不如使用上述数组引用那样有效。范例：<pre>while($hash_ref = $sth-&gt;fetchrow_hashref) {
+        print qw($hash_ref-&gt;{firstname}\t$hash_ref-&gt;{lastname}\t\
+                $hash_ref- &gt; title}\n);
+}
+<a name="IDX795"></a> <a name="IDX796"></a> </pre>
+  </dd>
+  <dt><code>fetchall_arrayref</code> </dt>
+  <dd>这个方法被用来获得从SQL语句被返回的所有数据(行)。它返回一个数组的引用，该数组包含对每行的数组的引用。你用一个嵌套循环来存取或打印数据。范例：<pre>my $table = $sth-&gt;fetchall_arrayref
+                or die "$sth-&gt;errstr\n";
+my($i, $j);
+for $i ( 0 .. $#{$table} ) {
+        for $j ( 0 .. $#{$table-&gt;[$i]} ) {
+                print "$table-&gt;[$i][$j]\t";
+        }
+        print "\n";
+}
+<a name="IDX797"></a> <a name="IDX798"></a> </pre>
+  </dd>
+  <dt><code>finish</code> </dt>
+  <dd>便名没有更多的数据将从这个语句句柄取出。你调用这个方法释放语句句柄和任何与它相关的系统资源。范例： 
+    <pre>$rc = $sth-&gt;finish;
+</pre>
+  </dd>
+  <dt><code>rows</code> </dt>
+  <dd>返回由最后一条命令改变(更新、删除等)的行数。这通常用在非<code>SELECT</code>的<code>execute</code>语句之后。范例：<pre>$rv = $sth-&gt;rows; 
+</pre>
+  </dd>
+  <dt><code>NULLABLE</code> </dt>
+  <dd>返回一个对一个布尔值数组的引用；对数组的每个成员，一个TRUE值表示该列可以包含<code>NULL</code>值。范例：<pre>$null_possible = $sth-&gt;{NULLABLE};
+</pre>
+  </dd>
+  <dt><code>NUM_OF_FIELDS</code> </dt>
+  <dd>这个属性表明由一条<code>SELECT</code>或<code>SHOW FIELDS</code>语句返回的字段数目。你可以用它检查一条语句是否返回了结果：一个零值表明一个象<code>INSERT</code>、<code>DELETE</code>或<code>UPDATE</code>的非<code>SELECT</code>语句。范例：<pre>$nr_of_fields = $sth-&gt;{NUM_OF_FIELDS};
+<a name="IDX805"></a> <a name="IDX806"></a> </pre>
+  </dd>
+  <dt><code>data_sources($driver_name)</code> </dt>
+  <dd>这个方法返回一个数组，它包含在主机<code>'localhost'</code>上的<strong>MySQL</strong>服务器可得到的数据库名。范例：<pre>@dbs = DBI-&gt;data_sources("mysql");
+</pre>
+  </dd>
+  <dt><code>ChopBlanks</code> </dt>
+  <dd>这个属性确定<code>fetchrow_*</code>方法是否将去掉返回值的头和尾的空白。范例：<pre>$sth-&gt;{'ChopBlanks'} =1;
+<a name="IDX809"></a> <a name="IDX810"></a> </pre>
+  </dd>
+  <dt><code>trace($trace_level)</code> </dt>
+  <dd>　</dd>
+  <dt><code>trace($trace_level, $trace_filename)</code> </dt>
+  <dd><code>trace</code>方法开启或关闭跟踪。当作为一个<code>DBI</code>类方法调用时，它影响对所有句柄的跟踪。当作为一个数据库或语句句柄方法调用时，它影响对给定句柄的跟踪(和句柄的未来子孙)。设置<code>$trace_level</code>为2以提供详细的踪迹信息，设置<code>$trace_level</code>为0以关闭跟踪。踪迹输出缺省地输出到标准错误输出。如果指定<code>$trace_filename</code>，文件以添加模式打开并且<em>所有</em>跟踪的句柄的手被写入该文件。范例：<pre>DBI-&gt;trace(2);                # trace everything
+DBI-&gt;trace(2,"/tmp/dbi.out"); # trace everything to /tmp/dbi.out
+$dth-&gt;trace(2);               # trace this database handle
+$sth-&gt;trace(2);               # trace this statement handle
+</pre>
+    <p><a name="IDX811"></a><a name="IDX812"></a>你也可以通过设置<code>DBI_TRACE</code>环境变量开启<code>DBI</code>跟踪。将它设置为等价于调用<code>DBI-&gt;(value)</code>的数字值，将它设置为等价于调用<code>DBI-&gt;(2,value)</code>的路径名。 
+    </p>
+  </dd>
+</dl>
+
+<p><strong>MySQL特定的方法</strong> </p>
+
+<p>下面显示的方法是<strong>MySQL</strong>特定的并且不是<code>DBI</code>标准的部分。他们中有几个现在不建议使用：<code>is_blob</code>、<code>is_key</code>、<code>is_num</code>、<code>is_pri_key</code>、<code>is_not_null</code>、<code>length</code>、max_length和<code>table</code>。这些已有<code>DBI</code>标准的另一种方法存在，他们在下面说明。 
+
+</p><dl compact="IDX812">
+  <dt><code>insertid</code> </dt>
+  <dd>如果你使用<strong>MySQL</strong>的<code>AUTO_INCREMENT</code>功能，新的自动加1的值将存储在这里。范例：<pre>$new_id = $sth-&gt;{insertid};
+</pre>
+    <p>作为另一种选择，你可以使用<code>$dbh-&gt;{'mysql_insertid'}</code>。<a name="IDX816"></a> <a name="IDX817"></a> </p>
+  </dd>
+  <dt><code>is_blob</code> </dt>
+  <dd>返回一个对一个布尔值数组的引用；对数组的每个单元，一个TRUE值表明相应的列是一个<code>BLOB</code>。范例： 
+    <pre>$keys = $sth-&gt;{is_blob};
+<a name="IDX818"></a> <a name="IDX819"></a> </pre>
+  </dd>
+  <dt><code>is_key</code> </dt>
+  <dd>返回一个对一个布尔值数组的引用；对数组的每个单元，一个TRUE值表明相应的列是键。范例：<pre>$keys = $sth-&gt;{is_key};
+</pre>
+  </dd>
+  <dt><code>is_num</code> </dt>
+  <dd>返回一个对一个布尔值数组的引用；对数组的每个单元，一个TRUE值表明相应的列包含数字值。范例： 
+    <pre>$keys = $sth-&gt;{is_key};
+<a name="IDX822"></a> <a name="IDX823"></a> </pre>
+  </dd>
+  <dt><code>is_pri_key</code> </dt>
+  <dd>返回一个对一个布尔值数组的引用；对数组的每个单元，一个TRUE值表明相应的列是主键。范例：<pre>pri_keys = $sth-&gt;{is_pri_key}; 
+<a name="IDX824"></a> <a name="IDX825"></a> </pre>
+  </dd>
+  <dt><code>is_not_null</code> </dt>
+  <dd>返回一个对一个布尔值数组的引用；对数组的每个单元，一个FALSEE值表明该列可以包含<code>NULL</code>值。范例：<pre>$not_nulls = $sth-&gt;{is_not_null};
+</pre>
+    <p><code>is_not_null</code>不建议使用；最好使用<code>NULLABLE</code>属性(在上面描述了)，因为那是一个 
+    DBI 标准。 <a name="IDX826"></a> <a name="IDX827"></a> <a name="IDX828"></a> <a name="IDX829"></a> </p>
+  </dd>
+  <dt><code>length</code> </dt>
+  <dd>　</dd>
+  <dt><code>max_length</code> </dt>
+  <dd>这些方法的每个返回一个对列大小数组的引用。<code>length</code>数组指出每列可以有的最大可能的尺寸 
+    (如在表描述中声明的)。<code>max_length</code>数组指出在结果表中实际存在的最大尺寸。范例：<pre>$lengths = $sth-&gt;{length};
+$max_lengths = $sth-&gt;{max_length};
+<a name="IDX830"></a> <a name="IDX831"></a> </pre>
+  </dd>
+  <dt><code>NAME</code> </dt>
+  <dd>返回一个对一个列名数组的引用。范例： <pre>$names = $sth-&gt;{NAME};
+</pre>
+  </dd>
+  <dt><code>table</code> </dt>
+  <dd>返回一个对一个表名数组的引用。范例：<pre>$tables = $sth-&gt;{table};
+</pre>
+  </dd>
+  <dt><code>type</code> </dt>
+  <dd>返回一个对一个列类型数组的引用。范例：<pre>$types = $sth-&gt;{type};
+</pre>
+  </dd>
+</dl>
+
+<h3><a name="DBI-info" style="">20.5.3 更多<code>的DBI</code>/<code>DBD</code>信息</a></h3>
+
+<p>你可以使用<code>perldoc</code>命令得到更多的关于<code>DBI</code>的信息。</p>
+
+<pre>perldoc DBI
+perldoc DBI::FAQ
+perldoc DBD::mysql
+</pre>
+
+<p>你也可以使用<code>pod2man</code>、pod2html等工具转换到其他格式。 </p>
+
+<p>而且你当然可以在<code>DBI</code>网页中找到最新的<code>DBI</code>信息： 
+</p>
+
+<pre><a href="http://www.symbolstone.org/technology/perl/DBI/index.html">http://www.symbolstone.org/technology/perl/DBI/index.html</a>
+</pre>
+
+<h2><a name="Eiffel" style="">20.6 MySQL Eiffel包装</a></h2>
+
+<p><strong>MySQL</strong> <a href="http://www.mysql.com/Contrib/">Contrib目录</a>包含Michael 
+Ravits编写的一个Eiffel包装程序。</p>
+
+<p>你也能在这里找到：http://www.netpedia.net/hosting/newplayer/</p>
+
+<h2><a name="Java" style="">20.7 MySQL Java连接(JDBC)</a></h2>
+
+<p>有2个为MySQL支持的JDBC驱动程序(twz和mm驱动程序)。你可以在<a href="http://www.mysql.com/Contrib">http://www.mysql.com/Contrib</a>找到这些的一个拷贝。对于文档，请教任何JDBC文档和驱动程序本身拥有的针对<strong>MySQL</strong>特定功能的文档。 
+</p>
+
+<h2><a name="PHP" style="">20.8 MySQL PHP API</a></h2>
+
+<p>PHP是一个服务器端、HTML嵌入式脚本语言，可以用来创建动态网页。它包含对存取若干数据库的支持，包括<strong>MySQL</strong>。PHP可以作为一个单独的程序运行，或编译为与Apache服务器一起使用的一个模块。 
+</p>
+
+<p>分发和文档可在<a href="http://www.php.net/">PHP网站</a>得到。 </p>
+
+<h2><a name="Cplusplus" style="">20.9 MySQL C++ APIs</a></h2>
+
+<p>在<strong>MySQL</strong> <a href="http://www.mysql.com/Contrib/">Contrib 目录</a>中可得到两个API。 
+</p>
+
+<h2><a name="Python" style="">20.10 MySQL Python API</a></h2>
+
+<p><strong>MySQL</strong> <a href="http://www.mysql.com/Contrib/">Contrib 目录</a>包含Joseph 
+Skinner编写的一个Python接口。 </p>
+
+<p>你也可以使用对iODBC的Python接口来存取一个<strong>MySQL</strong>服务器。<a href="http://starship.skyport.net/%7Elemburg/">mxODBC</a></p>
+
+<h2><a name="TCL" style="">20.11 MySQL TCL API</a></h2>
+
+<p><a href="http://www.binevolve.com/%7Etdarugar/tcl-sql/">TCL at binevolve</a>。<a href="http://www.mysql.com/Contrib">Contrib 目录</a>包含一个基于msqltcl 1.50的一个TCL接口。</p>
+
+<hr>
+
+<p><a href="http://www.yesky.com/imagesnew/software/mysql/manual_Introduction.html">第一章</a>, <a href="http://www.yesky.com/imagesnew/software/mysql/manual_Common_problems.html">前一章</a>, 
+<a href="http://www.yesky.com/imagesnew/software/mysql/manual_Comparisons.html">下一章</a>, <a href="http://www.yesky.com/imagesnew/software/mysql/manual_Concept_Index.html">最后一章</a>&#160; </p>
+<script language="Javascript">
+document.write("<img src='http://counter.yesky.com/counter.shtml?CID=54197&amp;AID=-1&amp;refer="+escape(document.referrer)+"&amp;cur="+escape(document.URL)+"' border='0' alt='' width='0' height='0'>");
+</script><img src="manual_Clients%20%E7%9A%84%E6%96%87%E4%BB%B6/counter.shtml" alt="" border="0" width="0" height="0">
+<noscript>
+<img
+src="http://counter.yesky.com/counter.shtml?CID=54197&amp;AID=-1&amp;refer=noscriptcounter&amp;cur=noscriptcounter"
+border='0' width='0' height='0'/>
+</noscript><iframe src="manual_Clients%20%E7%9A%84%E6%96%87%E4%BB%B6/b_contentsd.html" scrolling="no" width="600" frameborder="0" height="170"></iframe></body></html>

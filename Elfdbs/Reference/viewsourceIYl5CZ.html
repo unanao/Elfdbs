@@ -1,0 +1,343 @@
+<html>
+
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+   <meta name="generator" content="Movable Type 3.32" />
+   <meta name="Keywords" content="embedded Linux; Linux device drivers; 嵌入式 Linux" />
+   <link rel="stylesheet" href="http://www.jollen.org/blog/styles-site.css" type="text/css" />
+   <link rel="alternate" type="application/atom+xml" title="Atom" href="http://www.jollen.org/blog/atom.xml" />
+   <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="http://www.jollen.org/blog/index.xml" />
+
+   <title>ELF（Executable and Linking Format）格式教學文件, #7: 讀 ELF 的 Section Name（透過 strtab）</title>
+
+   <link rel="start" href="http://www.jollen.org/blog/" title="Home" />
+   <link rel="prev" href="http://www.jollen.org/blog/2006/12/executable_linking_format_elf_6.html" title="ELF（Executable and Linking Format）格式教學文件, #6: 讀 ELF Section（程式列表）" />
+   <link rel="next" href="http://www.jollen.org/blog/2006/12/_elfexecutable_and_linking_for.html" title=" ELF（Executable and Linking Format）格式教學文件, #8: loader v0.5 與結果輸出（改善與小討論）" />
+
+   <!--
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:trackback="http://madskills.com/public/xml/rss/module/trackback/"
+         xmlns:dc="http://purl.org/dc/elements/1.1/">
+<rdf:Description
+    rdf:about="http://www.jollen.org/blog/2006/12/elfexecutable_and_linking_form.html"
+    trackback:ping="http://blog.jollen.org/mt-tb.cgi/256"
+    dc:title="ELF（Executable and Linking Format）格式教學文件, #7: 讀 ELF 的 Section Name（透過 strtab）"
+    dc:identifier="http://www.jollen.org/blog/2006/12/elfexecutable_and_linking_form.html"
+    dc:subject="GNU Toolchains &amp; Linux Systems Programming"
+    dc:description="根據 SysV ABI 的定義，若 section 的類型為 SHT_STRTAB，則該 section entry 即為 string table 的 section header。Section 的類型可由 section header 的 sh_type 欄位來判斷，SysV ABI 定義的 section 類型（sh_type）如下表所示。 表 sh_type 欄位的定義 Name &amp;nbsp;Value SHT_NULL &amp;nbsp;0 SHT_PROGBITS &amp;nbsp;1 SHT_SYMTAB &amp;nbsp;2 SHT_STRTAB &amp;nbsp;3 SHT_RELA &amp;nbsp;4..."
+    dc:creator="jollen"
+    dc:date="2006-12-04T17:25:24+08:00" />
+</rdf:RDF>
+-->
+
+
+   
+   <script type="text/javascript" src="http://www.jollen.org/blog/mt-site.js"></script>
+</head>
+<body class="layout-two-column-right individual-entry-archive" onload="individualArchivesOnLoad(commenter_name)">
+<a name="top" />
+<div align="center" id="container-banner">
+
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td width="100">
+      <p align="left"><a href="http://www.jollen.org">
+      <img src="http://www.jollen.org/images/jollen.png" border="0" width="100" height="102"></a>　</td>
+      <td width="12"><img alt height="1" width="12"> </td>
+      <td valign="middle" width="90%">
+      <table id="table8" border="0" cellpadding="0" cellspacing="3" width="100%">
+
+        <tr valign="middle">
+          <td align="left"><div class="module-title"><a href="http://www.jollen.org/blog/">Jollen 的 Blog</a></div></td>
+          <td>
+          <div align="right">
+            <a href="http://forum.jollen.org/index.php?showforum=8"><font size="-1" color="#FF0000">最新消息</font></a> | <a href="mailto:jollen@o3.net?subject=%E8%A9%A2%E5%95%8F%E9%97%9C%E6%96%BC%E8%AA%B2%E7%A8%8B">
+            連絡我</a></div>
+
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" bgcolor="#ddad08" height="1">
+          <img alt height="1" width="1"></td>
+        </tr>
+        <tr>
+          <td colspan="2" align="left">
+          <p dir="ltr"><font size="-1">more:
+          <a href="http://www.jollen.org/consulting/">Jollen 的 Embedded Linux 教育訓練</a></font>
+
+          </td>
+        </tr>
+      </table>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div align="center">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td>
+<!--blog: start-->
+   <div id="container">
+      <div id="container-inner" class="pkg">
+         <div id="pagebody">
+            <div id="pagebody-inner" class="pkg">
+
+                     <p class="content-nav">
+                        <a href="http://www.jollen.org/blog/2006/12/executable_linking_format_elf_6.html">&laquo; ELF（Executable and Linking Format）格式教學文件, #6: 讀 ELF Section（程式列表）</a> |
+                        <a href="http://www.jollen.org/blog/">Home</a>
+                        | <a href="http://www.jollen.org/blog/2006/12/_elfexecutable_and_linking_for.html"> ELF（Executable and Linking Format）格式教學文件, #8: loader v0.5 與結果輸出（改善與小討論） &raquo;</a>
+                     </p>
+
+                     <!--h2 id="archive-title">ELF（Executable and Linking Format）格式教學文件, #7: 讀 ELF 的 Section Name（透過 strtab）</h2-->
+                     <h3 class="entry-header">ELF（Executable and Linking Format）格式教學文件, #7: 讀 ELF 的 Section Name（透過 strtab）</h3>
+                     <p>                     <a href="http://www.jollen.org">jollen</a> 發表於 December  4, 2006  5:25 PM
+                     
+                      </p>
+
+                     <div class="entry" id="entry-256">
+                        <div class="entry-content">
+                                                      <div class="entry-body">
+                              <p>根據 SysV ABI 的定義，若 section 的類型為 <i>SHT_STRTAB</i>，則該 section entry 即為 string 
+table 的 section header。Section 的類型可由 section header 的 <i>sh_type</i> 欄位來判斷，SysV 
+ABI 定義的 section 類型（<i>sh_type</i>）如下表所示。</p>
+<p>表<i> sh_type</i> 欄位的定義</p>
+<table border="1" width="100%" id="table17" style="border-collapse: collapse" cellspacing="3">
+	<tr>
+		<td width="377" bgcolor="#E6E6E6"><b>Name</b></td>
+		<td bgcolor="#E6E6E6"><b>&nbsp;Value</b></td>
+	</tr>
+	<tr>
+		<td width="377">SHT_NULL</td>
+		<td>&nbsp;0</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_PROGBITS</td>
+		<td>&nbsp;1</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_SYMTAB</td>
+		<td>&nbsp;2</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_STRTAB</td>
+		<td>&nbsp;3</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_RELA</td>
+		<td>&nbsp;4</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_HASH</td>
+		<td>&nbsp;5</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_DYNAMIC</td>
+		<td>&nbsp;6</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_NOTE</td>
+		<td>&nbsp;7</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_NOBITS</td>
+		<td>&nbsp;8</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_REL</td>
+		<td>&nbsp;9</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_SHLIB</td>
+		<td>&nbsp;10</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_DYNSYM</td>
+		<td>&nbsp;11</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_LOPROC</td>
+		<td>&nbsp;0x70000000</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_HIPROC</td>
+		<td>&nbsp;0x7fffffff</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_LOUSER</td>
+		<td>&nbsp;0x80000000</td>
+	</tr>
+	<tr>
+		<td width="377">SHT_HIUSER</td>
+		<td>&nbsp;0xffffffff</td>
+	</tr>
+</table>
+<p>我們在範例程式 <i>loader-0.3.c</i> 中，試著由一堆的 section 裡找出類型為 string table（<i>SHT_STRTAB</i>）的section。接下來程式 
+<i>loader-0.4.c </i>將會試著實作讀取 ELF 的 string table，並將有 section 的名稱印出。</p>
+<p><b>讀取 Section Name String Table</b></p>
+<p>String table 是一個特殊的 section，此 section 紀錄所有 section 的名稱（ASCII 字串）。String table 
+是一個字元型別的陣列，每一個 section 都會有一個索引值來索引自己的 section name 字串，<u>section header </u>的 <i>
+sh_name</i> 欄位則是存放了此索引值，如圖所示。</p>
+<img alt="elf_strtab.JPG" src="http://www.jollen.org/blog/2006/12/04/elf_strtab.JPG" width="485" height="333" />
+<p>圖 ELF section name string table</p>
+<p>接下來的範例程式將不再直接列表，請大家由 
+<a href="http://tw.jollen.org/elf-programming">
+http://tw.jollen.org/elf-programming</a> 下載。</p>
+<p><b>程式說明</b></p>
+<p>呼叫了 <em>parse_sections()</em> 函數來讀取section header table：</p>
+<blockquote>
+	<p>parse_sections(&amp;f_header, fd);</p>
+</blockquote>
+<p>相較於 <em>loader-0.3.c</em> 的 <em>parse_sections()</em> 函數，在 0.4 的版本裡，我們所做的改變如下：</p>
+<p>1. 讀取 string table 的內容<br>
+2. 列印所有 section 的名稱</p>
+<p>首先，我們新增一個陣列來存放 string table 的內容：</p>
+<blockquote>
+	<p>char strtab[65535];</p>
+</blockquote>
+<p>接下來一樣讀取所有的 section entry，並且找出 string table：</p>
+<pre>   for (i = 0; i < hdr->e_shnum; i++) {
+      read(fd, &header_ent[i], sizeof(Elf32_Shdr));
+
+      /* load section name string table */
+      if (i == hdr->e_shstrndx) {
+         sh_strtab = &header_ent[i];
+      }
+   }</pre>
+<p>我們試著用另外一種方法來找出 string table 吧！根據 SysV ABI 的定義，string table 在 section header 
+table 裡的 section entry index（索引值）紀錄在 ELF header 的 <i>e_shstrndx</i> 
+欄位，因此，我們判斷目前的 section header table 索引值是否等於 <i>e_shstrndx</i> 來找出 string 
+table。接下來再讀取string table　的內容：</p>
+<pre>   /* read “String Table” */
+   lseek(fd, sh_strtab->sh_offset, SEEK_SET);
+   read(fd, strtab, sh_strtab-&gt;sh_size);</pre>
+<p>程式裡利用 <i>lseek()</i> 函數將檔案讀寫指標移 string table 開始的地方，然後再將整個 string table 
+讀出。要注意的是，section 的長度紀錄於 section header裡的 <i>sh_size</i> 
+欄位。最後再逐一將每個section的名稱列印在螢幕上：</p>
+<pre>   /* Index 0: undefined */
+   for (i = 1; i < hdr->e_shnum; i++) {
+      printf("%s\n", &strtab[header_ent[i].sh_name]);
+   }</pre>
+<p><b>小結</b></p>
+<p>我們知道一個很重要的觀念了。ELF section 的字串名稱是由 string table 查表得知，section 名稱在 string table 
+陣列裡的索引值則是紀錄在 section header 裡的 <i>sh_name</i> 欄位。</p>
+<table id="table16" border="0" cellpadding="0" cellspacing="0" width="100%">
+	<tr><td bgcolor="#FF5959"><img alt="" height="1" width="1"></td></tr>
+</table>
+<table id="table14" border="0" cellpadding="2" cellspacing="0" width="100%">
+	<tr><td bgcolor="#FFD8CA"><font size="-1"><b>Also See</b></font></td></tr>
+</table>
+<table id="table15" border="0" cellpadding="2" cellspacing="0" width="100%">
+	<tr><td width="100%">
+		<ul>
+			<li>2006.11.19: <a href="http://www.jollen.org/blog/2006/11/executable_linking_format_elf_1.html">ELF（Executable and Linking Format）格式教學文件, #1: ELF 簡介</a></li>
+
+			<li>2006.11.22: <a href="http://www.jollen.org/blog/2006/11/executable_linking_format_elf_2html.html">ELF（Executable and Linking Format）格式教學文件, #2: ELF header 與範例規劃</a></li>
+			<li>2006.11.24: <a href="http://www.jollen.org/blog/2006/11/executable_linking_format_elf_3.html">ELF（Executable and Linking Format）格式教學文件, #3: 第一個範例：loader v0.1（讀 ELF 檔頭）</a></li>
+			<li>2006.11.26: <a href="http://www.jollen.org/blog/2006/11/executable_linking_format_elf_4.html">ELF（Executable and Linking Format）格式教學文件, #4: 第一個範例：loader v0.2（ELF Identification）</a></li>
+			<li>2006.11.28:
+			<a href="http://www.jollen.org/blog/2006/11/elfexecutable_and_linking_form.html">
+			ELF（Executable and Linking Format）格式教學文件, #5: 讀 ELF Section（說明）</a></li>
+			<li>2006.12.04:
+			<a href="http://www.jollen.org/blog/2006/11/executable_linking_format_elf_6.html">
+			ELF（Executable and Linking Format）格式教學文件, #6: 讀 ELF Section（程式列表）</a></li>
+		</ul>
+	</td></tr>
+</table>
+                           </div>
+                           
+                                        
+                           
+                           <p><i>--jollen</i></p>
+                        </div>
+                     </div>
+
+                                          <div class="trackbacks">
+                        <h3 id="trackback" class="trackbacks-header">引用通告</h3>
+                        <div id="trackbacks-info">
+                           <p>如果您想引用這篇文章到您的Blog，<br />請複製下面的鏈接，並放置到您發表文章的相應界面中。<br /><br />http://blog.jollen.org/mt-tb.cgi/256</p>
+                        </div>
+                        
+                     </div>
+                     
+
+                                          <div id="comments" class="comments">
+                        
+
+                         
+                        <form method="post" action="http://blog.jollen.org/mt-comments.cgi" name="comments_form" onsubmit="if (this.bakecookie.checked) rememberMe(this)">
+                           <input type="hidden" name="static" value="1" />
+                           <input type="hidden" name="entry_id" value="256" />
+                           
+                           <div class="comments-open" id="comments-open">
+                              <h2 class="comments-open-header">發表一個評論</h2>
+                              
+                              <div class="comments-open-content">
+                                 <script type="text/javascript">
+                                 <!--
+                                 writeTypeKeyGreeting(commenter_name, 256);
+                                 //-->
+                                 </script>
+                              
+                                 
+                                 <p class="comments-open-moderated">
+                                    (您發表的意見將被立即接受，但需要一點時間與後端伺服器做同步，您的留言才會顯示在網站上。為避免 spam 攻撃，按「發表」後請輸入帳號密碼。使用者帳號：「nospam」、密碼：「nospam」。)
+                                 </p>
+
+                                 <div id="comments-open-data">
+
+                                    <div id="name-email">
+                                       <p>
+                                          <label for="comment-author">名字:</label>
+                                          <input id="comment-author" name="author" size="30" />
+                                       </p>
+                                       <p>
+                                          <label for="comment-email">Email 地址:</label>
+                                          <input id="comment-email" name="email" size="30" />
+
+                                       </p>
+                                    </div>
+
+                                    <p>
+                                       <label for="comment-url">URL:</label>
+                                       <input id="comment-url" name="url" size="30" />
+                                    </p>
+                                    <p>
+                                       <label for="comment-bake-cookie"><input type="checkbox"
+                                          id="comment-bake-cookie" name="bakecookie" onclick="if (!this.checked) forgetMe(document.comments_form)" value="1" />
+
+                                          記住個人信息？</label>
+                                    </p>
+                                 </div>
+
+                                 <p id="comments-open-text">
+                                    <label for="comment-text">評論: </label>
+                                    <textarea id="comment-text" name="text" rows="15" cols="50"></textarea>
+                                 </p>
+                                 <div id="comments-open-footer" class="comments-open-footer">
+                                    <input type="submit" accesskey="v" name="preview" id="comment-preview" value="預覽" />
+                                    <input type="submit" accesskey="s" name="post" id="comment-post" value="發表" />
+                                 </div>
+                              </div>
+                           </div>
+                        </form>
+                        
+                     </div>
+                     
+
+            </div>
+         </div>
+      </div>
+   </div>
+<!--blog: end-->   
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p align="center">
+<a href="#top">Top</a> | <a href="http://www.jollen.org/license.html">授權條款</a> | <a href="http://forum.jollen.org">Jollen's Forum</a>: Blog 評論、討論與搜尋<br />Copyright(c) 2006 www.jollen.org
+</p>
+
+</body>
+</html>

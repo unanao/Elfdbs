@@ -1,0 +1,510 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+ <META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+ <META NAME="GENERATOR" CONTENT="lfparser_2.38">
+ <META NAME="LFCATEGORY" CONTENT="SoftwareDevelopment">
+ <link rel="icon" href="../../common/images/lf-16.png" type="image/png">
+ <TITLE>lf304, SoftwareDevelopment: The MySQL C API</TITLE>
+<style type="text/css">
+<!--
+ td.top {font-family: Arial,Geneva,Verdana,Helvetica,sans-serif; font-size:12 }
+ pre { font-family:monospace,Courier }
+ pre.code { font-family:monospace,Courier;background-color:#aedbe8; }
+ p.cl { color:#EE9500 }
+ a.nodec { text-decoration:none }
+ p.trans { font-size:8pt; text-align:right }
+ p.clbox { width:50%; alignment:center; background-color:#FFD700; 
+           border-style:none; border-width:medium; border-color:#FFD700; 
+           padding:0.5cm;  text-align:center }
+ p.code { width:80%; alignment:center; background-color:#aedbe8; 
+          border-style:none; border-width:medium; border-color:#aedbe8; 
+          padding:0.1cm;  text-align:left }
+ p.foot { background-color:#AAAAAA; color:#FFFFFF; border-style:none; 
+          border-width:medium; border-color:#AAAAAA; padding:0.5cm ; 
+          margin-top:0.1cm; margin-right:1cm; margin-left:1cm; 
+          text-align:center }
+ .mark  { background-color:#e6e6ff }
+-->
+</style>
+ 
+</HEAD>
+<BODY bgcolor="#ffffff" text="#000000">
+ <!-- this is generated html code. NEVER use this file for your
+ translation work. Instead get the file with the same article number
+ and .meta.shtml in its name. Translate this meta file and then
+ use lfparser program to generate the final article -->
+ <!-- lfparser can be obtained from http://www.linuxfocus.org/~guido/dev/lfparser.html -->
+
+<!-- this is used by a number of tools:
+ =LF=AUTHOR: &Ouml;zcan     G&uuml;ng&ouml;r
+ =LF=CAT___: SoftwareDevelopment
+ =LF=TITLE_: The MySQL C API
+ =LF=NUMBER: 304
+ =LF=ANAME_: article304.shtml
+ -->
+
+<!-- 2pdaIgnoreStart -->
+
+<!-- start navegation bar, style=2 -->
+ <!-- top navegation bar -->
+ <TABLE summary="topbar_1" cellspacing="0" cellpadding="0" border="0" align="center" width="90%">
+   <TR bgcolor="#2e2292">
+     <TD class="top"><TABLE summary="topbar_1_logo" cellspacing="0" cellpadding="0" border="0" width=
+       "100%">
+         <TR><TD width="319"><IMG src="../../common/images/logolftop_319x45.gif"
+           alt="[LinuxFocus-icon]" width="319" height="45" align="left" 
+           border="0"></TD>
+
+           <TD class="top">
+             <TABLE summary="topbar_1_links" width="100%">
+               <TR align="right">
+                 <TD class="top">
+                 <A class="nodec" href="./"><FONT color=
+                 "#DDDDDD" size="2">&lt;--</FONT></A> &nbsp;| 
+                 <A class="nodec" href="../"><FONT color=
+                 "#DDDDDD" size="2">Home</FONT></A> &nbsp;| 
+                 <A class="nodec" href="../map.html"><FONT color=
+                 "#DDDDDD" size="2">Map</FONT></A> &nbsp;| 
+                 <A class="nodec" href="../indice.html"><FONT color=
+                 "#DDDDDD" size="2">Index</FONT></A> &nbsp;| 
+                 <A class="nodec" href="../Search/"><FONT color=
+                 "#DDDDDD" size="2">Search</FONT></A> </TD>
+               </TR>
+
+               <TR align="right">
+                 <TD class="top">
+                   <HR width="100%" noshade size="1">
+                 </TD>
+               </TR>
+             </TABLE>
+           </TD>
+         </TR>
+       </TABLE>
+     </TD>
+   </TR>
+ </TABLE>
+ <!-- end top navegation bar -->
+ <!-- blue bar -->
+ <TABLE summary="topbar_2" cellspacing="0" cellpadding="0" border="0" align="center"
+ width="90%">
+   <TR bgcolor="#00ffff">
+     <TD><IMG src="../../common/images/transpix.gif" width="1" height=
+     "2" alt=""></TD>
+   </TR>
+ </TABLE>
+ <!-- end blue bar -->
+ <!-- bottom navegation bar -->
+ <TABLE summary="topbar_3" cellspacing="0" cellpadding="0" border="0" align="center"
+ width="94%">
+   <TR bgcolor="#000000">
+     <TD>
+       <TABLE summary="topbar_3_links" cellspacing="0" cellpadding="1" border="0" width=
+       "100%">
+         <TR align="center">
+           <TD WIDTH="20%"><A class="nodec" href="../News/"><FONT color=
+           "#FFFFFF">News</FONT></A> </TD>
+           <TD WIDTH="5%"><FONT color="#FFFFFF">|</FONT> </TD>
+           <TD WIDTH="20%"><A class="nodec" href="../Archives/"><FONT color=
+           "#FFFFFF">Archives</FONT></A> </TD>
+           <TD WIDTH="5%"><FONT color="#FFFFFF">|</FONT> </TD>
+           <TD WIDTH="20%"><A class="nodec" href="../Links/"><FONT color=
+           "#FFFFFF">Links</FONT></A> </TD>
+           <TD WIDTH="5%"><FONT color="#FFFFFF">|</FONT> </TD>
+           <TD WIDTH="20%"><A class="nodec" href="../aboutus.html"><FONT color=
+           "#FFFFFF">About LF</FONT></A> </TD>
+         </TR>
+       </TABLE>
+     </TD>
+   </TR>
+ </TABLE>
+ <!-- end bottom navegation bar -->
+<!-- stop navegation bar -->
+
+<!-- SSI_INFO -->
+
+<!-- addedByLfdynahead ver 1.5 --><TABLE ALIGN="right" border=0><TR><TD ALIGN="right"><FONT SIZE="-1" FACE="Arial,Helvetica">This document is available in: <A href="../../English/September2003/article304.shtml">English</a> &nbsp;<A href="../../Castellano/September2003/article304.shtml">Castellano</a> &nbsp;<A href="../../ChineseGB/September2003/article304.shtml">ChineseGB</a> &nbsp;<A href="../../Deutsch/September2003/article304.shtml">Deutsch</a> &nbsp;<A href="../../Francais/September2003/article304.shtml">Francais</a> &nbsp;<A href="../../Nederlands/September2003/article304.shtml">Nederlands</a> &nbsp;<A href="../../Portugues/September2003/article304.shtml">Portugues</a> &nbsp;<A href="../../Russian/September2003/article304.shtml">Russian</a> &nbsp;<A href="../../Turkce/September2003/article304.shtml">Turkce</a> &nbsp;<A href="../../Polish/September2003/article304.shtml">Polish</a> &nbsp;</FONT></TD></TR></TABLE><br>
+ 
+
+
+<!-- SSI_INFO STOP -->
+<!-- 2pdaIgnoreStop -->
+
+<!-- SHORT BIO ABOUT THE AUTHOR -->
+<TABLE ALIGN=LEFT BORDER=0  WIDTH="190" summary="about the author">
+<TR>
+<TD>
+
+<img src="../../common/images/OzcanGungor.jpg" alt=
+    "Ozcan Gungor" width="114" height="147">
+<BR>by  &Ouml;zcan G&uuml;ng&ouml;r <br> <small>&lt;ozcangungor(at)netscape.net&gt;</small>
+<BR><BR>
+<I>About the author:</I><BR>
+<!-- aboutauthor_start -->
+
+    I use Linux since 1997. Freedom, flexibility and opensource.
+    These are the properties I like.
+
+    
+<!-- aboutauthor_stop -->
+<!-- TRANSLATED TO en -->
+<BR><BR><I>Translated to English by:</I><BR>
+&Ouml;zcan G&uuml;ng&ouml;r <small>&lt;ozcangungor(at)netscape.net&gt;</small>
+<br>
+<!--
+ =LF=TRANSTO=en: &Ouml;zcan G&uuml;ng&ouml;r
+-->
+<!-- TRANSLATED TO STOP -->
+<BR><i>Content</i>:
+<UL>
+  <LI><A HREF="#304lfindex0">Introduction</A></LI>
+  <LI><A HREF="#304lfindex1">MySQL C Variable Types</A></LI>
+  <LI><A HREF="#304lfindex2">Connecting to MySQL and making a query</A></LI>
+  <LI><A HREF="#304lfindex3">Some Useful Functions</A></LI>
+  <LI><A HREF="#304lfindex4">Recommended Readings</A></LI>
+  <LI><A HREF="http://cgi.linuxfocus.org/cgi-bin/lftalkback?anum=304">Talkback form for this article</A></LI>
+</UL>
+
+</TD></TR></TABLE>
+<!-- HEAD OF THE ARTICLE -->
+<br>&nbsp;
+<table border="0"><tr><td>
+<H2>The MySQL C API</H2>
+ <img src="../../common/images/illustartion304.gif" hspace="10" alt="mysql logo" width="348" height="150">
+<!-- ABSTRACT OF THE ARTICLE -->
+<P><i>Abstract</i>:
+<P>
+<!-- articleabstract_start -->
+
+    In this article, we will learn how to use the C APIs
+    (Application Programming Interfaces) that come with MySQL. In
+    order to understand this article well you need knowledge about
+    prerequisites:
+
+    <ul><li>Variables in C</li><li>Functions in C</li><li>Pointers in C</li></ul>
+<!-- articleabstract_stop -->
+
+<br><!-- HR divider --><center><font color="#8282e0"><b>_________________ _________________ _________________</b></font></center><br>
+</td></tr></table>
+<!-- BODY OF THE ARTICLE -->
+
+
+    <A NAME="304lfindex0">&nbsp;</A>
+<H2>Introduction</H2>
+
+    The C APIs are distributed with the MySQL source and included
+    in the <i>mysqlclient</i> library. They are used to connect to
+    a database and execute a query. There are some examples in the
+    <i>clients</i> directory of the MySQL source code.
+
+    <A NAME="304lfindex1">&nbsp;</A>
+<H2>MySQL C Variable Types</H2>
+
+    The Following variable types are defined in the MySQL library.
+    We need these variables in order to use the MySQL functions.
+    Variables are explained in detail but the details are actually
+    not so important to write code.
+
+    <p><b>MYSQL</b><br>
+    The following structure is communication handler that is used
+    to connect to a database.</p>
+<pre class="code">
+typedef struct st_mysql {
+  NET           net;            /* Communication parameters */
+  gptr          connector_fd;   /* ConnectorFd for SSL */
+  char          *host,*user,*passwd,*unix_socket,
+                *server_version,*host_info,*info,*db;
+  unsigned int  port,client_flag,server_capabilities;
+  unsigned int  protocol_version;
+  unsigned int  field_count;
+  unsigned int  server_status;
+  unsigned long thread_id;      /* Id for connection in server */
+  my_ulonglong affected_rows;
+  my_ulonglong insert_id;       /* id if insert on table with NEXTNR */
+  my_ulonglong extra_info;              /* Used by mysqlshow */
+  unsigned long packet_length;
+  enum mysql_status status;
+  MYSQL_FIELD   *fields;
+  MEM_ROOT      field_alloc;
+  my_bool       free_me;        /* If free in mysql_close */
+  my_bool       reconnect;      /* set to 1 if automatic reconnect */
+  struct st_mysql_options options;
+  char          scramble_buff[9];
+  struct charset_info_st *charset;
+  unsigned int  server_language;
+} MYSQL;
+
+</pre>
+    <br>
+    <br>
+
+
+    <p><b>MYSQL_RES</b><br>
+    This structure represents the results of a query which returns
+    rows. The data returned data is called result-set.</p>
+<pre class="code">
+typedef struct st_mysql_res {
+  my_ulonglong row_count;
+  unsigned int  field_count, current_field;
+  MYSQL_FIELD   *fields;
+  MYSQL_DATA    *data;
+  MYSQL_ROWS    *data_cursor;
+  MEM_ROOT      field_alloc;
+  MYSQL_ROW     row;            /* If unbuffered read */
+  MYSQL_ROW     current_row;    /* buffer to current row */
+  unsigned long *lengths;       /* column lengths of current row */
+  MYSQL         *handle;        /* for unbuffered reads */
+  my_bool       eof;            /* Used my mysql_fetch_row */
+} MYSQL_RES;
+
+</pre>
+    <br>
+    <br>
+
+
+    <p><b>MYSQL_ROW</b><br>
+    This structure is a type-safe representation of data in a row.
+    You cannot use this as a string that ends with null character
+    because data in this string can be binary and may include null
+    character.</p>
+<pre class="code">
+typedef struct st_mysql_field {
+  char *name;                   /* Name of column */
+  char *table;                  /* Table of column if column was a field */
+  char *def;                    /* Default value (set by mysql_list_fields) */
+  enum enum_field_types type;   /* Type of field. Se mysql_com.h for types */
+  unsigned int length;          /* Width of column */
+  unsigned int max_length;      /* Max width of selected set */
+  unsigned int flags;           /* Div flags */
+  unsigned int decimals;        /* Number of decimals in field */
+} MYSQL_FIELD;
+
+</pre>
+    <br>
+    <br>
+
+
+    <p><b>my_ulonglong</b><br>
+    The type used for the number of rows and for
+    mysql_affected_rows(), mysql_num_rows(), and mysql_insert_id().
+    This type provides a range of 0 to 1.84e19. On some systems,
+    attempting to print a value of type my_ulonglong will not work.
+    To print such a value, convert it to unsigned long and use the
+    %lu printf format. Example:<br>
+    printf(Number of rows: %lu\n", (unsigned long)
+    mysql_num_rows(result));</p>
+
+    <p class="code">typedef unsigned long my_ulonglong;</p>
+
+    <A NAME="304lfindex2">&nbsp;</A>
+<H2>Connecting to MySQL and making a query</H2>
+
+    Now, I assume that MySQL is installed, a user and a table in a
+    database is created. In case of any problem, please refer the
+    <a href="http://www.mysql.com">www.mysql.com</a> website.
+
+    <p>As said before MySQL libraries are in the mysqlclient library.
+    So while compiling a MySQL program, it is necessary to add the
+    <i>-lmysqlclient</i> compiler option. MySQL header files are
+    under /usr/include/mysql (this may depend on your Linux
+    distribution). The header of you program has then to look like
+    this:</p>
+
+    <p class="code">#include &lt;mysql/mysql.h&gt;</p>
+
+    <p>MySQL variable types and functions are included in this
+    header file.</p>
+
+    <p>Then, we need to create the variable that is used to connect
+    a database. This is simply done with:</p>
+
+    <p class="code">MYSQL *mysql;</p>
+
+    <p>Before connecting to a database, we must call the following
+    function to initiate the mysql variable:</p>
+
+    <p class="code">mysql_init(MYSQL *mysql)</p>
+
+    <p>Then the</p>
+<pre class="code">
+MYSQL * STDCALL mysql_real_connect(MYSQL *mysql,
+                                   const char *host,
+                                   const char *user,
+                                   const char *passwd,
+                                   const char *db,
+                                   unsigned int port,
+                                   const char *unix_socket,
+                                   unsigned int clientflag);
+</pre>
+
+    <p>function is called to connect to a database. host is the
+    hostname of the MySQL server. user is the user we want to
+    connect as. passwd is the password. db is the database we want
+    to connect to. port is the TCP/IP port number of MySQL server.
+    unix_socket is connection type. clientflag is the flag that
+    makes MySQL run ODBC-like. In this article it is set to 0. This
+    function returns 0 when connection is established.</p>
+
+    <p>Now we can connect to a database and make a query:</p>
+<pre class="code">
+char *query;
+</pre>
+
+    <p>Using this string we can construct any SQL sentences and
+    make a query. The function that executes the query is:</p>
+<pre class="code">
+int STDCALL mysql_real_query(MYSQL *mysql,
+                             const char *q,
+                             unsigned int length);
+</pre>
+    mysql is the variable we have used above. q is the SQL query
+    string. length is the lenth of this string. If the query
+    suceeds without error, the function returns 0.
+
+    <p>After making a query, we need a variable in MYSQL_RES in
+    order to be able to use query results. The following line
+    creates this variable:</p>
+<pre class="code">
+MYSQL_RES *res;
+</pre>
+    Then
+<pre class="code">
+mysql_use_result(MYSQL *query)
+</pre>
+    The function is used to read results.
+
+    <p>Altough we can make queries easily, we need some other
+    functions to use the results. The first one is:</p>
+<pre class="code">
+MYSQL_ROW STDCALL mysql_fetch_row(MYSQL_RES *result);
+</pre>
+    This function tranforms results into rows. As you notice, the
+    function returns a MYSQL_ROW type valiable. The following line
+    creates such a variable:
+<pre class="code">
+MYSQL_ROW row;
+</pre>
+    As explained above variable row is an array of strings. This
+    means that row[0] is the first column of the first row, row[1]
+    is second column of the first row.... When we use
+    mysql_fetch_row, then the variable row gets the data of the
+    next row of the result. When we reach the end of the result,
+    then the function returns a negative value. In the end we need
+    to close the connection:
+<pre class="code">
+mysql_close(MYSQL *mysql)
+</pre>
+
+    <A NAME="304lfindex3">&nbsp;</A>
+<H2>Some Useful Functions</H2>
+
+    Let's see how to get the number of fields in a table. The
+    following function does it:
+<pre class="code">
+unsigned int STDCALL mysql_num_fields(MYSQL *mysql);
+</pre>
+    This function returns the number of fields in the table.
+
+    <p>To get the number of rows of query result use:</p>
+
+    <p class="code">my_ulonglong STDCALL mysql_num_rows(MYSQL_RES
+    *res);</p>
+
+    <p class="code">my_ulonglong STDCALL mysql_affected_rows(MYSQL
+    *mysql);</p>
+    This function is used to know the number of rows that are
+    affected by INSERT, DELETE, UPDATE queries. Note that the
+    function returns the type my_ulonglong.
+
+    <p>Finally some example code:</p>
+<pre class="code">
+#include &lt;mysql/mysql.h&gt;
+#include &lt;stdio.h&gt;
+
+void main(){
+   MYSQL *mysql;
+   MYSQL_RES *res;
+   MYSQL_ROW row;
+   char *query;
+   int t,r;
+
+   mysql_init(mysql);
+   if (!mysql_real_connect(mysql,"localhost","mysql",
+        "mysql","deneme",0,NULL,0))
+   {
+       printf( "Error connecting to database: %s\n",mysql_error(mysql));
+   }
+   else printf("Connected...\n");
+
+   query="select * from Deneme";
+
+   t=mysql_real_query(mysql,query,(unsigned int) strlen(query));
+   if (t)
+   {
+      printf("Error making query: %s\n",
+              mysql_error(mysql));
+   }
+   else printf("Query made...\n");
+   res=mysql_use_result(mysql);
+   for(r=0;r&lt;=mysql_field_count(mysql);r++){
+           row=mysql_fetch_row(res);
+           if(row&lt;0) break;
+           for(t=0;t&lt;mysql_num_fields(res);t++){
+                   printf("%s ",row[t]);
+           }
+           printf("\n");
+   }
+   mysql_close(mysql);
+}
+</pre>
+
+    <A NAME="304lfindex4">&nbsp;</A>
+<H2>Recommended Readings</H2>
+
+
+    <ul>
+      <li>The web site of MySQL: <a href=
+      "http://www.mysql.com">www.mysql.com</a></li>
+
+      <li>Documents coming along with the MySQL source. (Probably
+      under the /usr/doc directory)</li>
+    </ul>
+  
+
+
+
+<!-- 2pdaIgnoreStart -->
+<A NAME="talkback">&nbsp;</a>
+<h2>Talkback form for this article</h2>
+Every article has its own talkback page. On this page you can submit a comment or look at comments from other readers:
+<center>
+<table border="0"  CELLSPACING="2" CELLPADDING="1" summary="tb-button-outerpart">
+ <tr BGCOLOR="#C2C2C2"><td align=center>
+  <table border="3"  CELLSPACING="2" CELLPADDING="1" summary="tb-button">
+   <tr BGCOLOR="#C2C2C2"><td align=center>
+    <A href="http://cgi.linuxfocus.org/cgi-bin/lftalkback?anum=304"><b>&nbsp;talkback page&nbsp;</b></a>
+   </td></tr></table>
+</td></tr></table>
+</center>
+
+<HR size="2" noshade>
+<a style="background-color:#bdc6d5" href="./">&lt;--, back to the index of this issue </a><br><HR size="2" noshade>
+<!-- ARTICLE FOOT -->
+<CENTER><TABLE WIDTH="98%" summary="footer">
+<TR><TD ALIGN=CENTER BGCOLOR="#bdc6d5" WIDTH="50%">
+<A HREF="../../common/lfteam.html">Webpages maintained by the LinuxFocus Editor team</A>
+<BR><FONT COLOR="#FFFFFF">&copy; &Ouml;zcan     G&uuml;ng&ouml;r, <a href="../../common/copy.html">FDL</a> <BR><a href="http://www.linuxfocus.org">LinuxFocus.org</a></FONT>
+</TD>
+<TD BGCOLOR="#bdc6d5">
+<!-- TRANSLATION INFO -->
+<font size=2>Translation information:</font>
+<TABLE summary="translators">
+  <tr><td><font size="2">tr --&gt; -- : &Ouml;zcan G&uuml;ng&ouml;r <small>&lt;ozcangungor(at)netscape.net&gt;</small></font></td></tr>
+  <tr><td><font size="2">tr --&gt; en: &Ouml;zcan G&uuml;ng&ouml;r &lt;ozcangungor(at)netscape.net&gt;</font></td></tr>
+</TABLE>
+</TD>
+</TR></TABLE></CENTER>
+<p><font size=1>2003-08-07, generated by lfparser version 2.38</font></p>
+<!-- 2pdaIgnoreStop -->
+</BODY>
+</HTML>

@@ -1,0 +1,655 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en-US"><head>
+
+
+ <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+ <title>Getting Started with CGI Programming in C</title>
+ <link rel="stylesheet" type="text/css" href="cgic%20%E7%9A%84%E6%96%87%E4%BB%B6/small.css" media="all">
+ <link rel="SHORTCUT ICON" href="http://www.cs.tut.fi/%7Ejkorpela/favicon.ico" type="image/x-icon">
+<style type="text/css">
+CODE.C { background : white; color : #990000;}
+CODE.html { background : white; color : #002200;}
+body { font-family: Cambria; }
+h1, h2, h3 { font-family: Calibri, Arial, sans-serif; }
+h2 { font-size: 130%; }
+pre, code, samp { font-family: Consolas; }
+.minitoc h2 { margin: 0;
+              font-size: 100%; }
+blockquote p,
+.warning ul { margin-bottom: 0; }
+blockquote, blockquote * {
+  background: white !important;
+  color: black !important; }
+</style>
+<meta name="description" content="An introduction to writing CGI programs in the C language.
+The reader is assumed to know the basics of C as well as how
+to write forms in HTML and to be able to install CGI scripts on
+a Web server.">
+</head><body>
+<h1>
+Getting Started with CGI Programming in C
+</h1>
+
+<div class="minitoc" style="width: 16em;">
+<h2>Content</h2>
+<ul>
+  <li> <a href="#why">Why CGI programming?</a>   
+  </li><li> <a href="#ex">A basic example</a>
+  </li><li> <a href="#an">Analysis of the example</a>
+  </li><li> <a href="#what">So what is CGI programming?</a>
+  </li><li> <a href="#setup">Using a C program as a CGI script</a>
+  </li><li> <a href="#hello">The <samp>Hello world</samp> test</a>
+  </li><li> <a href="#get">How to process a simple form</a>
+  </li><li> <a href="#post">Using <code>METHOD="POST"</code></a>
+  </li><li> <a href="#more">Further reading</a>
+</li></ul>
+</div>
+
+<p class="summary">
+This is an introduction to writing CGI programs in the
+<a href="http://www.eskimo.com/%7escs/C-faq/top.html" title="comp.lang.c Frequently Asked Questions">C language</a>.
+The reader is assumed to know the basics of C as well how
+to write simple
+<a href="http://www.cs.tut.fi/%7Ejkorpela/forms/index.html" title="Annotated links to tutorials, references, and specialized documents about HTML forms">forms</a>
+in
+<a title="Getting Started with HTML; a primer by J. Korpela" href="http://www.cs.tut.fi/%7Ejkorpela/html-primer.html">HTML</a>
+and to be able to install CGI scripts on
+a Web server.
+The principles are illustrated with very simple examples.
+</p>       
+
+<div class="warning">
+Two important warnings:
+<ul><li>
+To avoid wasting your time, please check&#8212;from applicable local
+doc­u­ments or by contacting local webmaster&#8212;whether you can
+install and run CGI scripts written in C on the server.
+At the same time, please check how to do that in detail&#8212;specifically,
+where you need to put your CGI scripts.
+</li><li>This document was written to illustrate the idea of CGI
+scripting to C pro­gram­mers. In practice, CGI programs are usually
+written in other lan­guages, such as
+<a href="http://www.cs.tut.fi/%7Ejkorpela/perl/index.html">Perl</a>,  and for good reasons:
+except for very simple cases, CGI programming in C is clumsy
+and error-prone.
+</li></ul>
+</div>
+
+<h2><a name="why">Why CGI programming?</a></h2>
+<p>
+As my document
+<a href="http://www.cs.tut.fi/%7Ejkorpela/forms/index.html" title="Annotated links to tutorials, references, and specialized documents about HTML forms"><cite>How to write HTML forms</cite></a> briefly explains,
+you need a <em>server side-script</em> in order to use HTML
+forms reliably. Typically, there are simple server-side scripts
+available
+for
+simple, common ways of processing form submissions, such as sending
+the data in text format by E-mail to a specified address.
+</p><p>
+However, for more advanced processing, such as collecting data into
+a file or database, or retrieving information and sending it back,
+or doing some calculations with the submitted data, you will
+probably need to write a server-side script of your own.
+</p><p>
+CGI is simply an <em>interface</em> between HTML forms and server-side
+scripts. It is not the only possibility&#8212;see the excellent tutorial
+<a href="http://www.garshol.priv.no/download/text/http-tut.html">
+<cite>How the web works: HTTP and CGI explained</cite></a>
+by
+<a href="http://www.garshol.priv.no/">Lars Marius Garshol</a>
+for both an introduction to the concepts of CGI and notes on other
+pos­si­bil­i­ties.
+</p><p>
+If someone suggests using JavaScript as an <em>alternative</em> to CGI,
+ask him to read my
+<a href="http://www.cs.tut.fi/%7Ejkorpela/forms/javascript.html"><cite>JavaScript and HTML: possibilities and caveats</cite></a>.
+Briefly, JavaScript is inherently unreliable at least if not 
+&#8220;backed up&#8221;
+with server-side scripting.
+
+</p><h2><a name="ex">A basic example</a></h2>
+
+<p>
+The above-mentioned 
+<a href="http://www.garshol.priv.no/download/text/http-tut.html">
+<cite>How the web works: HTTP and CGI explained</cite></a>
+is a great tutorial. <!-- There are some shorter introductions like
+<A HREF="http://www.virtualville.com/library/cgi.html"
+><cite>Introduction to the Common Gateway Interface (CGI)</cite></A>
+in the
+<a href="http://www.virtualville.com/library.html">Virtualville Library</a>.-->
+The following introduction of mine is just another attempt to present
+the basics; please consult other sources if you get confused or need
+more information.
+</p><p>
+<a name="simpleform">Let us consider the following simple HTML form:</a>
+</p><pre><code class="html">&lt;form action="http://www.cs.tut.fi/cgi-bin/run/~jkorpela/mult.cgi"&gt;
+&lt;div&gt;&lt;label&gt;Multiplicand 1: &lt;input name="m" size="5"&gt;&lt;/label&gt;&lt;/div&gt;
+&lt;div&gt;&lt;label&gt;Multiplicand 2: &lt;input name="n" size="5"&gt;&lt;/label&gt;&lt;/div&gt;
+&lt;div&gt;&lt;input type="submit" value="Multiply!"&gt;&lt;/div&gt;
+&lt;/form&gt;</code></pre>
+<p>It will look like the following on your current browser:</p>
+<form action="http://www.cs.tut.fi/cgi-bin/run/~jkorpela/mult.cgi">
+<div><label>Multiplicand 1: <input name="m" size="5"></label></div>
+<div><label>Multiplicand 2: <input name="n" size="5"></label></div>
+<div><input value="Multiply!" type="submit"></div>
+</form>
+<p>You can try it if you like. Just in case the server used isn&#8217;t
+running and accessible when you try it, here&#8217;s what you would get
+as the result:
+</p><blockquote>
+<h3>Multiplication results</h3>
+<p>The product of 4 and 9 is 36.</p>
+</blockquote>
+
+<h2><a name="#n">Analysis of the example</a></h2>
+
+<p>
+We will now analyze how the example above works.
+</p><p>
+Assume that you type <kbd>4</kbd> into one input field and
+<kbd>9</kbd> into another and then invoke sub­mis­sion&#8212;<wbr>typically,
+by clicking on a submit button. Your browser will
+send, by the HTTP protocol, a request to the server at
+<code>www.cs.tut.fi</code>. The browser pick up this server name
+from the value of <code>ACTION</code> attribute where it
+occurs as the host name part of a URL.
+(Quite often, the <code>ACTION</code> attribute refers, often using
+a relative URL, to a script on the same server as the document
+resides on, but this is not necessary, as this example shows.)
+</p><p>
+When sending the request, the browser provides additional information,
+specifying a relative URL, in this case<br>
+<code>/cgi-bin/run/~jkorpela/mult.cgi?m=4&amp;n=9</code><br>
+This was constructed from that part of the <code>ACTION</code> value
+that follows the host name, by appending a question mark
+&#8220;<code>?</code>&#8221; and the form data in
+<a href="http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type" title="Specification of the application/x-www-form-urlencoded encoding">a specifically encoded format</a>.
+</p><p>
+The server to which the request was sent
+(in this case, <code>www.cs.tut.fi</code>)
+will then process
+it according to its own rules. Typically, the server&#8217;s configuration
+defines how the relative URLs are mapped to file names and which
+directories/folders are interpreted as containing CGI scripts.
+As you may guess, the part <code>cgi-bin/</code> in the URL causes
+such interpretation in this case. This means that instead of just
+picking up and
+sending back (to the browser that sent the request) an HTML document
+or some other file, the server <em>invokes</em> a script or a program
+specified in the URL (<code>mult.cgi</code> in this case) and passes
+some data to it (the data <code>m=4&amp;n=9</code> in this case).</p>
+<p><small>It depends on the server how this really happens.
+In this particular case, the server actually runs the (executable)
+program in the file <code>mult.cgi</code> in the subdirectory
+<code>cgi-bin</code> of user
+<code>jkorpela</code>&#8217;s home directory. It could be something
+quite different, depending on server configuration.</small></p>
+<p>
+
+</p><h2><a name="what">So what is CGI programming?</a></h2>
+<p>
+The often-mystified abbreviation <dfn>CGI</dfn>, for
+<dfn>Common Gateway Interface</dfn>, refers just to a convention on how
+the invocation and parameter passing takes place in detail.
+</p><p><dfn>Invocation</dfn> means different things in different cases.
+For a <a href="http://www.cs.tut.fi/%7Ejkorpela/perl/index.html">Perl</a> script, the server would invoke a Perl interpreter and
+make it execute the script in an interpretive manner. For an
+executable program, which has typically been produced by a compiler
+and a loader from a source program in a language like C, it would
+just be started as a separate process.
+</p><p>Although the word <em>script</em> typically suggests that the code
+is interpreted, the term <dfn>CGI script</dfn> refers both to such
+scripts and to executable programs.
+See the
+<a href="http://www.webthing.com/tutorials/cgifaq.1.html#2">answer to question <i>Is it a script or a program?</i></a>
+in
+<a href="http://www.webthing.com/tutorials/cgifaq.html"><cite>CGI Programming FAQ</cite></a> by
+Nick Kew.</p>
+
+<h2> <a name="setup">Using a C program as a CGI script</a></h2>
+
+<p>In order to set up a C program as a CGI script, it needs to
+be turned into a binary executable program. This is often problematic,
+since people largely work on Windows whereas servers often run some
+version of UNIX or Linux. The system where you develop your program
+and the server where it should be installed as a CGI script may have
+quite different architectures, so that the same executable does not
+run on both of them.</p>
+<p>This may create an unsolvable problem. If you are not allowed to
+log on the server and you cannot use a binary-compatible system
+(or a cross-compiler) either,
+you are out of luck. Many servers, however, allow you log on and use
+the server in interactive mode, as a &#8220;shell user,&#8221;
+and contain a C compiler.</p>
+
+<p class="warning"><a name="compile">You need to <strong>compile and load</strong></a>
+your C program on the
+<strong>server</strong> (or, in principle, on a system with the
+same architecture, so that binaries produced for it are executable
+on the server too).</p>
+
+<p>Normally, you would proceed as follows:</p>
+<ol>
+<li> Compile and test the C program
+in normal interactive use.
+</li><li> Make any changes that
+might be needed for use as a CGI script.
+The program should read its input 
+according to the intended
+form sub­mis­sion method. Using the default <code>GET</code> method,
+the input is to be read from the environment variable.
+<code>QUERY_STRING</code>.
+(The program may also read data from files&#8212;but these must then
+reside on the server.) 
+It should generate output on the standard output stream
+(<code>stdout</code>) so that it starts with suitable HTTP
+headers. Often, the output is in HTML format.
+</li><li> Compile and test again. In this testing phase,
+you might set the environment variable <code>QUERY_STRING</code>
+so that it contains the test data as it will be sent as form
+data. E.g.,
+if you intend
+to use a form where a field named <code>foo</code>
+contains the input data,
+ you can give the command<br>
+<kbd>setenv QUERY_STRING "foo=42"</kbd> (when using the tcsh shell)<br>
+or<br>
+<kbd>QUERY_STRING="foo=42"</kbd> (when using the bash shell).
+</li><li> Check that the compiled version is in a format that
+works on the server. This may require a recompilation.
+You may need to log on into the server computer (using
+Telnet, SSH, or some other terminal emulator) so that
+you can use a compiler there.
+</li><li>Upload the compiled and loaded program, i.e. the executable binary program
+(and any data files needed) on the server.
+</li><li> Set up a simple HTML document that contains a form for
+testing the script, etc.
+</li></ol>
+
+<p>You need to put the executable into
+a suitable directory and name it according to server-specific conventions.
+Even the compilation commands needed here might differ from what
+you are used to on your workstation.
+For example, if the server runs some flavor of Unix and has the
+Gnu C compiler available, you would typically use a compilation
+command like <code>gcc <nobr>-o</nobr> mult.cgi mult.c</code> and
+then move (<code>mv</code>) <code>mult.c</code> to a directory with
+a name like <code class="nobr">cgi-bin</code>.
+Instead of <code>gcc</code>, you might need to use <code>cc</code>.
+You really need to check local
+instructions for such issues.</p>
+
+<p><a name="ext">The <strong>filename extension <code>.cgi</code></strong></a>
+has no fixed meaning in general. However,
+ there can be <em>server-dependent</em>
+(and operating system dependent) rules for naming executable files.
+<em>Typical</em> extensions for executables are <code>.cgi</code>
+and <code>.exe</code>.</p>
+
+<h2> <a name="hello">The <samp>Hello world</samp> test</a></h2>
+<p>As usual when starting work with some new programming technology,
+you should probably first make a trivial program work.
+This avoids fighting with many potential problems at a time and
+concentrating first on the issues specific to the environment,
+here CGI.</p>
+<p>You could use the following program that just prints
+<samp>Hello world</samp> but preceded by HTTP headers as required by
+the CGI interface. Here the header specifies that the data is plain
+ASCII text.</p>
+<pre><code class="c">#include &lt;stdio.h&gt;
+int main(void) {
+  printf("Content-Type: text/plain;charset=us-ascii\n\n");
+  printf("Hello world\n\n");
+  return 0;
+}
+</code></pre>
+
+<p>After compiling, loading, and uploading, you should be able
+to test the script simply by entering the URL in the browser&#8217;s
+address bar. You could also make it the destination of a normal
+link in an HTML document. The URL of course depends on how you set
+things up; the URL for my installed <samp>Hello world</samp>
+script is the following:<br>
+<a href="http://www.cs.tut.fi/cgi-bin/run/%7Ejkorpela/hellow.cgi">http://www.cs.tut.fi/cgi-bin/run/~jkorpela/hellow.cgi</a>
+</p>
+
+<h2><a name="get">How to process a simple form</a></h2>
+<p class="important">For forms that use <code>METHOD="GET"</code> (as our
+<a href="#simpleform">simple example</a> above uses, since
+this is the default),
+CGI specifications say that the data is passed to
+the script or program in an environment variable called
+<code>QUERY_STRING</code>.
+</p><p>
+It depends on the scripting or programming
+language used how a program can access the value of an environment
+variable. In the C language, you would use the
+library function <code>getenv</code> (defined in the
+standard library <code>stdlib</code>) to access the value as
+a string. You might then use various techniques to pick up data
+from the string, convert parts of it to numeric values, etc.
+</p><p>
+The <em>output</em> from the script or program to &#8220;primary output
+stream&#8221; (such as <code>stdin</code> in the C language) is handled
+in a special way. Effectively, it is directed so that it gets sent
+back to the browser. Thus, by writing a C program that it writes
+an HTML document onto its standard output, you will make that document
+appear on user&#8217;s screen as a response to the form submission.
+</p><p>
+In this case, <a href="http://www.cs.tut.fi/%7Ejkorpela/forms/mult.c" title="The source program as a separate document">the source program</a>
+in C is the following:
+</p><pre><code class="C">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+int main(void)
+{
+char *data;
+long m,n;
+printf("%s%c%c\n",
+"Content-Type:text/html;charset=iso-8859-1",13,10);
+printf("&lt;TITLE&gt;Multiplication results&lt;/TITLE&gt;\n");
+printf("&lt;H3&gt;Multiplication results&lt;/H3&gt;\n");
+data = getenv("QUERY_STRING");
+if(data == NULL)
+  printf("&lt;P&gt;Error! Error in passing data from form to script.");
+else if(sscanf(data,"m=%ld&amp;n=%ld",&amp;m,&amp;n)!=2)
+  printf("&lt;P&gt;Error! Invalid data. Data must be numeric.");
+else
+  printf("&lt;P&gt;The product of %ld and %ld is %ld.",m,n,m*n);
+return 0;
+}
+</code></pre>
+
+<p><small>As a disciplined programmer, you have probably noticed
+that the program makes no check against integer overflow, so it
+will return bogus results for very large operands. In real life,
+such checks would be needed, but such considerations would take us
+too far from our topic.</small></p>
+
+<p>Note: The first <code>printf</code> function call prints out
+data that will be sent by the server as an HTTP header.
+This is required for several reasons, including the fact that
+a CGI script can send any data (such as an image or a plain text file)
+to the browser, not just HTML documents.
+For HTML documents, you can just use the <code>printf</code> function
+call above as such; however, if your
+<a href="http://www.cs.tut.fi/%7Ejkorpela/chars.html#encinfo" title="Information about encoding (In: A tutorial on character code issues)">character encoding</a> is different from ISO 8859-1 (ISO Latin 1),
+which is the most common on the Web, you need to replace
+<code>iso-8859-1</code> by the
+<a href="http://www.cs.tut.fi/%7Ejkorpela/chars/sorted.html">registered name of the encoding (&#8220;charset&#8221;) you use</a>.
+<!--
+<a href="ftp://ftp.isi.edu/in-notes/iana/assignments/character-sets"
+title='Official (IANA) registry of "charset" names'
+-->
+
+</p><p>I have compiled this program and saved the executable program
+under the name <code>mult.cgi</code> in my directory for CGI scripts
+at <code>www.cs.tut.fi</code>.
+This implies that <em>any</em>
+form with 
+<code>action=<wbr>"http://www.cs.tut.fi/cgi-bin/run/~jkorpela/mult.cgi"</code>
+will, when submitted, be processed by that program.</p>
+
+<p class="warning">Consequently, anyone could write a form
+of his own with the same <code>ACTION</code> attribute and pass
+whatever data he likes to my program. Therefore, the program
+needs to be able to <strong>handle any data</strong>.
+Generally, you need to check the data before starting to process it.
+</p>
+
+<h2><a name="post">Using <code>METHOD="POST"</code></a></h2>
+<h3>The idea of <code>METHOD="POST"</code></h3>
+<p>Let us consider next a different processing for form data.
+Assume that we wish to write a form that takes a line of text
+as input so that the form data is sent to
+a CGI script that
+<em>appends the data to a text file</em> on the server.
+(That text file could be readable by the author of the form and the
+script only, or it could be made readable to the world through another
+script.)
+</p><p>It might seem that the problem is similar to the
+<a href="#get">example considered above</a>; one would just need
+a different form and a different script (program).
+In fact, there is a difference. The example above can be regarded
+as a &#8220;pure query&#8221; that does not change the 
+&#8220;state of the world.&#8221;
+In particular, it is &#8220;idempotent,&#8221; i.e. the same form data could
+be submitted as many times as you like without causing any problems
+(except minor waste of resources). How­ever, our current task needs
+to cause such changes&#8212;a change in the content of a file that is
+intended to be more or less permanent. Therefore, one should use
+<code>METHOD="POST"</code>. This is explained in more detail in
+the document
+<a href="http://www.cs.tut.fi/%7Ejkorpela/forms/methods.html"><cite>Methods <code>GET</code> and <code>POST</code> in HTML forms - what&#8217;s the difference?</cite></a>
+Here we will take it for granted that
+<code>METHOD="POST"</code> needs to be used and we will consider the
+technical implications.
+</p><p class="important">For forms that use <code>METHOD="POST"</code>,
+CGI specifications say that the data is passed to
+the script or program
+in the standard input stream (<code>stdin</code>), and the
+length (in bytes, i.e. characters) of the data is passed
+in an environment variable called
+<code>CONTENT_LENGTH</code>.
+</p>
+
+<h3>Reading input</h3>
+
+<p>Reading from standard input sounds probably simpler than
+reading from an environment variable, but there are complications.
+The server is <em>not</em> required to pass the data so that
+when the CGI script tries to read more data than there is, it would
+get an end of file indi­ca­tion! That is, if you read e.g. using
+the <code>getchar</code> function in a C program, it is <em>undefined</em>
+what happens after reading all the data characters; it is not guaranteed
+that the function will return <code>EOF</code>.
+</p>
+<p class="warning">
+When reading the input, the program must not try to read more
+than <code>CONTENT_LENGTH</code> characters.
+</p>
+
+<h3>Sample program: accept and append data</h3>
+
+<p>
+A relatively simple
+<a href="http://www.cs.tut.fi/%7Ejkorpela/forms/collect.c" title="The source program as a separate document">C program</a>
+for accepting input via CGI and
+<code>METHOD="POST"</code> is the following:
+</p>
+<pre><code class="C">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#define MAXLEN 80
+#define EXTRA 5
+/* 4 for field name "data", 1 for "=" */
+#define MAXINPUT MAXLEN+EXTRA+2
+/* 1 for added line break, 1 for trailing NUL */
+#define DATAFILE "../data/data.txt"
+
+void unencode(char *src, char *last, char *dest)
+{
+ for(; src != last; src++, dest++)
+   if(*src == '+')
+     *dest = ' ';
+   else if(*src == '%') {
+     int code;
+     if(sscanf(src+1, "%2x", &amp;code) != 1) code = '?';
+     *dest = code;
+     src +=2; }     
+   else
+     *dest = *src;
+ *dest = '\n';
+ *++dest = '\0';
+}
+
+int main(void)
+{
+char *lenstr;
+char input[MAXINPUT], data[MAXINPUT];
+long len;
+printf("%s%c%c\n",
+"Content-Type:text/html;charset=iso-8859-1",13,10);
+printf("&lt;TITLE&gt;Response&lt;/TITLE&gt;\n");
+lenstr = getenv("CONTENT_LENGTH");
+if(lenstr == NULL || sscanf(lenstr,"%ld",&amp;len)!=1 || len &gt; MAXLEN)
+  printf("&lt;P&gt;Error in invocation - wrong FORM probably.");
+else {
+  FILE *f;
+  fgets(input, len+1, stdin);
+  unencode(input+EXTRA, input+len, data);
+  f = fopen(DATAFILE, "a");
+  if(f == NULL)
+    printf("&lt;P&gt;Sorry, cannot store your data.");
+  else
+    fputs(data, f);
+  fclose(f);
+  printf("&lt;P&gt;Thank you! Your contribution has been stored.");
+  }
+return 0;
+}
+</code></pre>
+
+<p>Essentially, the program retrieves the
+information about the number of characters in the input
+from value of the
+<code>CONTENT_LENGTH</code> environment variable.
+Then it unencodes (decodes) the data, since the data arrives in the
+<a href="http://www.w3.org/TR/REC-html40/interact/forms.html#form-content-type" title="Specification of the application/x-www-form-urlencoded encoding">specifically encoded format</a> that was already men­tioned.
+The program has been written for a form where the text input field
+has the name <code>data</code> (actually, just the length of the name
+matters here). For example, if the user types<br>
+<kbd>Hello there!</kbd><br>
+then the data will be passed to the program encoded as<br>
+<kbd>data=Hello+there%21</kbd><br>
+(with space encoded as <code>+</code> and exclamation mark encoded
+as <code>%21</code>). The <code>unencode</code> routine in the program
+converts this back to the original format. After that,
+the data is appended to a file (with a fixed file name),
+as well as echoed back to the user.
+</p><p>
+Having compiled the program I have saved it as <code>collect.cgi</code>
+into the directory for CGI scripts. Now a form like the following
+can be used for data submissions:
+</p><pre><code class="html">&lt;FORM ACTION="http://www.cs.tut.fi/cgi-bin/run/~jkorpela/collect.cgi"
+ METHOD="POST"&gt;
+&lt;DIV&gt;Your input (80 chars max.):&lt;BR&gt;
+&lt;INPUT NAME="data" SIZE="60" MAXLENGTH="80"&gt;&lt;BR&gt;
+&lt;INPUT TYPE="SUBMIT" VALUE="Send"&gt;&lt;/DIV&gt;
+&lt;/FORM&gt;
+</code></pre>
+
+<h3>Sample program: view data stored on a file</h3>
+
+<p>Finally, we can write
+<a href="http://www.cs.tut.fi/%7Ejkorpela/forms/viewdata.c">a simple program for viewing the data</a>;
+it only needs to copy the content of a given text file onto
+standard output:
+</p><pre><code class="C">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#define DATAFILE "../data/data.txt"
+int main(void)
+{
+FILE *f = fopen(DATAFILE,"r");
+int ch;
+if(f == NULL) {
+  printf("%s%c%c\n",
+  "Content-Type:text/html;charset=iso-8859-1",13,10);
+  printf("&lt;TITLE&gt;Failure&lt;/TITLE&gt;\n");
+  printf("&lt;P&gt;&lt;EM&gt;Unable to open data file, sorry!&lt;/EM&gt;"); }
+else {
+  printf("%s%c%c\n",
+  "Content-Type:text/plain;charset=iso-8859-1",13,10);
+  while((ch=getc(f)) != EOF)
+    putchar(ch);
+  fclose(f); }
+return 0;
+}
+</code></pre>
+
+<p>Notice that this program prints (when successful) the data
+as plain text, preceded by a header that says this, i.e.
+has <code>text/plain</code> instead of <code>text/html</code>.
+</p><p>
+A form that invokes that program can be very simple, since
+no input data is needed:
+</p><pre><code class="html">&lt;form action="http://www.cs.tut.fi/cgi-bin/run/~jkorpela/collect.cgi"
+ method="POST"&gt;
+&lt;div&gt;&lt;label for="data"&gt;Your input&lt;/label&gt; (80 chars max.):&lt;/div&gt;
+&lt;div&gt;&lt;input id="data" name="data" size="60" maxlength="80"&gt;&lt;/div&gt;
+&lt;div&gt;&lt;input type="submit" value="Send"&gt;&lt;/div&gt;
+&lt;/form&gt;</code></pre>
+
+<p>Finally, here&#8217;s what the two forms look like.
+You can now test them:
+
+</p><h3>Form for submitting data</h3>  
+<p>Please notice that anything you submit here will become
+visible to the world:</p>
+<form action="http://www.cs.tut.fi/cgi-bin/run/~jkorpela/collect.cgi" method="post">
+<div><label for="data">Your input</label> (80 chars max.):</div>
+<div><input id="data" name="data" size="60" maxlength="80"></div>
+<div><input value="Send" type="submit"></div>
+</form>
+
+<h3>Form for checking submitted data</h3>  
+<p>The content of the text file to which the submissions are
+stored will be displayed as plain text.</p>
+<form action="http://www.cs.tut.fi/cgi-bin/run/~jkorpela/viewdata.cgi"><div><input value="View" type="submit"></div></form>
+
+<p>Even though the output is declared to be plain text, Internet Explorer
+may interpret it partly as containing HTML markup. Thus, if someone enters
+data that contains such markup, strange things would happen.
+The <a href="http://www.cs.tut.fi/%7Ejkorpela/forms/viewdata.c">viewdata.c</a> program takes this into account
+by writing the NUL character (<code>'\0'</code>) after each occurrence
+of the greater-than character <code>lt;</code>, so that it will not
+be taken (even by IE) as starting a tag.</p>
+
+<h2 id="more">Further reading</h2>
+
+<p>You may now wish to read
+<a href="http://hoohoo.ncsa.uiuc.edu/cgi/interface.html"><cite>The CGI specification</cite></a>,
+which tells you all the basic details about CGI. The next step is
+probably to see what the
+<cite><a href="http://www.webthing.com/tutorials/cgifaq.html">CGI Programming FAQ</a></cite> contains. Beware that it is
+relatively old.</p>
+
+<p>There is a lot of material, including
+<a href="http://www.cgi-resources.com/Documentation/Introduction_to_CGI/">introductions</a> and
+<a href="http://www.cgi-resources.com/Documentation/CGI_Tutorials/">tutorials</a>,
+in the
+<a href="http://www.cgi-resources.com/">CGI Resource Index</a>.
+Notice in particular the section <a href="http://www.cgi-resources.com/Programs_and_Scripts/C_and_C++/Libraries_and_Classes/"><cite>Programs and Scripts: C and C++: Libraries and Classes</cite></a>,
+which contains libraries that can make it easier to process form data.
+It can be instructive to parse simple data format by using code of
+your own,
+as was done in the simple examples above, 
+but in practical application a library routine might be better.
+</p>
+
+<p>The C language was originally designed for an environment where
+only ASCII characters were used. Nowadays, it can be 
+used&#8212;with caution&#8212;for processing <nobr>8-bit</nobr>
+characters. There are various ways to overcome the
+limitation that in C implementations,
+a character is generally an
+<nobr>8-bit</nobr> quantity. See especially the last section in
+my book
+<a href="http://www.oreilly.com/catalog/unicode/" lang="en"><cite>Unicode Explained</cite></a>.</p>
+
+<hr title="Information about this document">
+<div><a title="ISO 8601, the date and time representation standard" href="http://www.cs.tut.fi/%7Ejkorpela/iso8601.html">
+Date</a> of last update:
+2008-04-11.
+<!-- 2001-04-15. Technical fix 2002-11-26. -->
+</div>
+<div class="footer">
+This page belongs to division
+<cite><a href="http://www.cs.tut.fi/%7Ejkorpela/www.html">Web authoring and surfing</a></cite>,
+subdivision
+<cite><a href="http://www.cs.tut.fi/%7Ejkorpela/forms/index.html">Forms</a></cite> in
+the free information site
+<cite><a href="http://www.cs.tut.fi/%7Ejkorpela/indexen.html">IT and communication</a></cite>
+by
+<a href="http://www.cs.tut.fi/%7Ejkorpela/personal.html" title="Jukka K. Korpela, an IT generalist and specialist (personal home page)">Jukka &#8220;Yucca&#8221; Korpela</a>.
+</div>
+</body></html>

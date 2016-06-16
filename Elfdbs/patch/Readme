@@ -1,0 +1,8 @@
+If the OS isdebian , need to put the asm.zip's file to  
+/usr/include/asm/
+command :
+#unzip asm
+#mv asm/* /usr/include/asm
+
+If the OS is UBUNTU ,This asm.zip is unuse
+

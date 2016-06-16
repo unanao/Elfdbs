@@ -1,0 +1,36 @@
+<head>
+<body>
+<title>CGIC Test</title>
+<H1>CGIC Library Test</H1>
+<form method="post" enctype="multipart/form-data" action="http://192.168.15.26/cgi-bin/test.cgi">
+
+<p>Plaintext test:<input name="plaintext" size="80">
+
+<p>Multiple-Line Field test:<textarea name="suggest" cols=30 rows=4></textarea><p>
+
+<p>Check Box test:<input type="checkbox" name="Firstcome" checked>New guest<p>
+
+<p>Numeric value test:<input type="text" name="temperature" value="100.1">(90-120)<p>
+
+<p>Integer value test:<input type="text" name="pressure" value="80"><p>
+
+<p>Select test:<select name="colors"><option value="Red">Red<option value="Green">Green<option value="Blue">Blue</select><p>
+
+<p>multiple Select test:<select name="animals" multiple><option value="chicken">chicken<option value="bull">bull<option value="duck">duck</select><p>
+
+<p>Exclusive radio button Test:<input type="radio" name="age" value="10" checked>10<input type="radio" name="age" value="20">20<input type="radio" name="age" value="30">30<input type="radio" name="age" value="40">40<p>
+
+<p>Check box group test:<input type="checkbox" name="vote" value="A">A<input type="checkbox" name="vote" value="B">B<input type="checkbox" name="vote" value="C">C<input type="checkbox" name="vote" value="D">D<p>
+
+<p>Cookie test(not work on every browser):
+
+<p>Cookie Name:<input name="cname" value=""> <p>
+<p>Cookie Value:<input name="cvalue" value=""> <p>
+
+<p>File Upload:<input type="file" name="file" value=""> (Select A Local File)<p>
+
+<input type="submit" name= "send" value="send"> <input type="reset" value="cancel">
+
+</form> 
+</body>
+</head>

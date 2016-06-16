@@ -1,0 +1,555 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="UTF-8">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="Content-Language" content="UTF-8" />
+<meta name="robots" content="all" />
+<meta name="author" content="jemicheng@gmail.com" />
+<meta name="Copyright" content="CopyRight 2006 F2Blog.com All Rights Reserved." />
+<meta name="keywords" content="f2blog,phpblog,blog,php,asp,designing,with,web,standards,xhtml,css,graphic,design,layout,usability,ccessibility,w3c,w3,w3cn,PuterJam,Harry,Korsen,Joesen,Terry,天上的骆驼,蚁鹰,一只耳,天上的駱駝,蚁鹰,一隻耳,,linux" />
+<meta name="description" content="愛做夢的蘆薈 - Day Dreamer&#39;s Blog" />
+<title>用pure C寫CGI的輔助工具-CGIC library - 程式設計 - 愛做夢的蘆薈</title>
+<link rel="alternate" type="application/rss+xml" href="http://daydreamer.idv.tw/rss.php?cateID=3" title="愛做夢的蘆薈 - 程式設計(Rss2)" />
+<link rel="alternate" type="application/atom+xml" href="http://daydreamer.idv.tw/atom.php?cateID=3"  title="愛做夢的蘆薈 - 程式設計(Atom)"  />
+<base href="http://daydreamer.idv.tw/" /><link rel="stylesheet" rev="stylesheet" href="skins/google_right/global.css" type="text/css" media="all" /><!--全局样式表-->
+<link rel="stylesheet" rev="stylesheet" href="skins/google_right/layout.css" type="text/css" media="all" /><!--层次样式表-->
+<link rel="stylesheet" rev="stylesheet" href="skins/google_right/typography.css" type="text/css" media="all" /><!--局部样式表-->
+<link rel="stylesheet" rev="stylesheet" href="skins/google_right/link.css" type="text/css" media="all" /><!--超链接样式表-->
+<link rel="stylesheet" rev="stylesheet" href="skins/google_right/f2blog.css" type="text/css" media="all" /><!--F2blog特有CSS-->
+<link rel="stylesheet" rev="stylesheet" href="include/common.css" type="text/css" media="all" /><!--F2blog共用CSS-->
+<link rel="stylesheet" rev="stylesheet" href="./skins/google_right/UBB/editor.css" type="text/css" media="all" /><!--UBB样式-->
+<link rel="icon" href="attachments/3793866175.ico" type="image/x-icon" />
+<link rel="shortcut icon" href="attachments/3793866175.ico" type="image/x-icon" />
+<script type="text/javascript" src="include/common.js.php"></script>
+<script type="text/javascript" src="include/f2blog_ajax.js"></script><link rel="stylesheet" href="plugins/CoolCode/coolcode.css" />
+<script type="text/javascript" src="plugins/CoolCode/coolcode.js"></script>
+<script type="text/javascript" src="plugins/pagepost/phprpc_client.js"></script>
+<script type="text/javascript" src="plugins/pagepost/innerhtml.js"></script>
+<script type="text/javascript" src="plugins/pagepost/pagepost.js.php"></script>
+<link rel="stylesheet" href="plugins/pagepost/pagepost.css" />
+<script language="JavaScript" src="http://funp.com/tools/js/funp_button.js"></script></head>
+<body>
+
+<div id="container">
+  <!--顶部-->
+  <div id="header">
+    <div id="blogname">
+      愛做夢的蘆薈      <div id="blogTitle">
+        Day Dreamer&#39;s Blog      </div>
+    </div>
+    <!--顶部菜单-->
+    <div id="menu">
+      <div id="Left"></div>
+      <div id="Right"></div>
+      <ul>
+		<li class="menuL"></li>
+		<li><a class="menuA" id="home" title="首頁" href="index.php">首頁</a></li> 
+<li><a class="menuA" id="tags" title="標籤" href="rewrite.php/tags.html">標籤</a></li> 
+<li><a class="menuA" id="guestbook" title="留言板" href="rewrite.php/guestbook.html">留言板</a></li> 
+<li><a class="menuA" id="links" title="連結" href="rewrite.php/links.html">連結</a></li> 
+<li><a class="menuA" id="archives" title="歸檔" href="rewrite.php/archives.html">歸檔</a></li> 
+<li><a class="menuA" id="admin" title="管理" href="admin/index.php">管理</a></li> 
+<li><a class="menuA" id="post" title="發表" href="admin/logs.php?action=add&amp;edittype=front">發表</a></li> 
+<li><a class="menuA" id="rss" title="RSS" href="rss.php">RSS</a></li> 
+        
+        <li class="menuR"></li>
+      </ul>
+    </div>
+  </div>  <!--内容-->
+  <div id="Tbody"> 
+  	<!--正文-->
+    <div id="mainContent">
+      <div id="innermainContent">
+        <div id="mainContent-topimg"></div>
+                    <!--主体部分-->
+          <div class="content-width"><a name="body" accesskey="B" href="#body"></a>
+	<div class="pageContent">
+	  <div style="float:right;"> 
+		<a href="rss.php?cateID=3" target="_blank" title="訂閱所有程式設計的網誌"><img border="0" src="images/rss.png" alt="訂閱所有程式設計的網誌" style="margin-bottom:-1px" align="absMiddle"/> 訂閱</a>
+		 | <a href="rewrite.php/read-28.html" title="上一篇網誌: SQUASHFS-Linux壓縮型檔案系統的王者"><img border="0" src="images/Cprev.gif" alt="上一篇" />上一篇</a> | 
+<a href="javascript:history.back(1)" title="返回"><img border="0" src="images/arrow_left1.gif" alt="返回" align="absMiddle" /> 返回</a> | 
+<a href="rewrite.php/read-30.html" title="下一篇網誌: Shared library on embedded platform-以ARM9和uClibc為例"><img border="0" src="images/Cnext.gif" alt="下一篇" />下一篇</a> 
+	  </div>
+
+	  <img src="images/icons/10.gif" style="margin:0px 2px -4px 0px" alt=""/>
+	  <strong><a href="rewrite.php/category-3.html" title="查看程式設計的網誌">程式設計</a></strong>
+	</div>
+
+	<div class="Content">
+	  <div class="Content-top">
+		<div class="ContentLeft"></div>
+		<div class="ContentRight"></div>
+		<table style="width: 100%">  
+     <tr> 
+     <td>
+        <div style="margin:0px 2px -4px 0px;" alt="" class="CateIconSP"><div class="DateYM">08</div><div class="DateDay">29</div></div>
+      </td>  
+      <td>  
+       <h1 class="ContentTitle"><strong>用pure C寫CGI的輔助工具-CGIC library</strong></h1>  
+       <h2 class="ContentAuthor">作者: Joey&nbsp;&nbsp;日期: 2008-08-29 15:52</h2>  
+     </td>  
+     <td style="width: 70px;text-align: center;"><script language="JavaScript" src="http://funp.com/tools/button.php?&s=1" type="text/javascript"></script></td>  
+     </tr>  
+    </table>  
+	  </div>
+	  <div class="Content-Info">
+		<div class="InfoOther">
+			字體大小: <a href="javascript:SetFont('logcontent_29','12px')">小</a> <a href="javascript:SetFont('logcontent_29','14px')">中</a> <a href="javascript:SetFont('logcontent_29','16px')">大</a>
+		</div>
+		<div class="InfoAuthor">
+						<img src="images/weather/hn2_sunny.gif" style="margin:0px 2px -6px 0px" alt=""/><img src="images/weather/hn2_t_sunny.gif" alt=""/>
+			 
+		</div>
+	  </div>
+
+	  <div class="Content-body" id="logcontent_29" style="word-break:break-all; table-layout: fixed;">
+		<p><font size="2">如何善用現有的library增快自己開發程式速度是現代工程師的課題,其實從我開始寫程式以來,大部份的動作,都是剪剪貼貼,看到不錯的演算法,就剪貼,看到能解決我問題的方案,也剪貼,我覺得只要能看得懂程式,就不算太嚴重的抄襲,甚至我可以補足這個程式某些沒有的功能,或加強程式的演算法,這些都能提昇我個人程設能力的credit</font></p>
+<p><font size="2">好了,廢話說太多了,這篇文章主要是介紹如何用c語言快速的寫出CGI程式,而我用的library就是大名鼎鼎的<a href="http://www.boutell.com/cgic/">CGIC</a>,這個library簡化了form與cgi溝通時所需要撰寫的複雜程序,工程師只要專注在不同type物件的name及value欄位即可</font></p>
+<p><font size="2"><!--more--></font></p>
+<p><font size="2">CGIC library使用方法非常簡單,<a href="http://www.boutell.com/cgic/cgic205.tar.gz">下載完後</a>,解開壓縮檔會看到兩個檔案分別是cgic.c和cgic.h,把它們跟你要寫的cgi程式擺在同一個資料夾下一起編譯即可,這邊舉個例子,假設我自寫的cgi檔名為test.c,則編譯時要下這樣的指令gcc &ndash;o test.cgi cgic.c test.c,test.c的內容如下範例</font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span class="hl-prepro">#include </span><span style="color: #8b0000;">&lt;</span><span style="color: Red;">stdio.h</span><span style="color: #8b0000;">&gt;</span><span class="hl-prepro">&nbsp;</span></li>
+<li><span class="hl-prepro">#include </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">cgic.h</span><span style="color: #8b0000;">&quot;</span><span class="hl-prepro">&nbsp;</span></li>
+<li><span class="hl-prepro">#include </span><span style="color: #8b0000;">&lt;</span><span style="color: Red;">string.h</span><span style="color: #8b0000;">&gt;</span><span class="hl-prepro">&nbsp;</span></li>
+<li><span class="hl-prepro">#include </span><span style="color: #8b0000;">&lt;</span><span style="color: Red;">stdlib.h</span><span style="color: #8b0000;">&gt;</span><span class="hl-prepro">&nbsp;</span></li>
+<li><span class="hl-types">int</span><span style="color: Gray;"> </span><span style="color: Blue;">cgiMain</span><span style="color: Olive;">()</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">}</span></li></ol></div></font></p>
+<p><font size="2">CGIC library提供很多的API,舉個例子,假設我今天要設定TextBox的值,並且讓cgi程式可把我設定的值印出來,那我的html表單可以設計如下</font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span style="color: Olive;">&lt;</span><span style="color: Green;">form</span><span style="color: Gray;"> </span><span style="color: #00008b;">method</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">post</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">enctype</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">multipart/form-data</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">action</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">http://192.168.15.26/cgi-bin/test.cgi</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">Plaintext test:</span><span style="color: Olive;">&lt;</span><span style="color: Green;">input</span><span style="color: Gray;">&nbsp;</span><span style="color: #00008b;">name</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">plaintext</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">size</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">80</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">&lt;/</span><span style="color: Green;">form</span><span style="color: Olive;">&gt;</span></li></ol></div></font></p>
+<p><font size="2">而相對應的c程式可設計如下</font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span class="hl-types">void</span><span style="color: Gray;"> </span><span style="color: Blue;">handlePlainText</span><span style="color: Olive;">()</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;">&nbsp;</span><span style="color: Blue;">value</span><span style="color: Olive;">[</span><span style="color: Maroon;">81</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">cgiFormStringNoNewlines</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">plaintext</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, </span><span style="color: Blue;">value</span><span style="color: Gray;">, </span><span style="color: Maroon;">81</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">Plaintext test:: </span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiHtmlEscape</span><span style="color: Olive;">(</span><span style="color: Blue;">value</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;BR&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Olive;">}</span></li></ol></div></font></p>
+<p><font size="2">從上例可以看到,用了CGIC library,我要做的事就很簡單了,只要呼叫3個函式,一切搞定</font></p>
+<p><font size="2">OK,介紹完基本的,就講比較難一點cookie設定範例,我html表單設計如下</font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span style="color: Olive;">&lt;</span><span style="color: Green;">form</span><span style="color: Gray;"> </span><span style="color: #00008b;">method</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">post</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">enctype</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">multipart/form-data</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">action</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">http://192.168.15.26/cgi-bin/test.cgi</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">Cookie test(not work on every browser): </span></li>
+<li><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">Cookie Name:</span><span style="color: Olive;">&lt;</span><span style="color: Green;">input</span><span style="color: Gray;">&nbsp;</span><span style="color: #00008b;">name</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">cname</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">value</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;&quot;</span><span style="color: Olive;">&gt;</span><span style="color: Gray;"> </span><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">Cookie Value:</span><span style="color: Olive;">&lt;</span><span style="color: Green;">input</span><span style="color: Gray;">&nbsp;</span><span style="color: #00008b;">name</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">cvalue</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">value</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;&quot;</span><span style="color: Olive;">&gt;</span><span style="color: Gray;"> </span><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">&lt;/</span><span style="color: Green;">form</span><span style="color: Olive;">&gt;</span></li></ol></div></font></p>
+<p><font size="2">而c程式可簡單分為兩個function,一個是設定cookie,另外一個是顯示我們所設定的cookie</font></p>
+<p><font size="2"><strong>設定cookie</strong></font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span class="hl-types">void</span><span style="color: Gray;"> </span><span style="color: Blue;">CookieSet</span><span style="color: Olive;">()</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;">&nbsp;</span><span style="color: Blue;">cname</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;"> </span><span style="color: Blue;">cvalue</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-mlcomment">/* Must set cookies BEFORE calling cgiHeaderContentType */</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">cgiFormString</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">cname</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, </span><span style="color: Blue;">cname</span><span style="color: Gray;">, </span><span style="color: Green;">sizeof</span><span style="color: Olive;">(</span><span style="color: Blue;">cname</span><span style="color: Olive;">))</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiFormString</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">cvalue</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, </span><span style="color: Blue;">cvalue</span><span style="color: Gray;">, </span><span style="color: Green;">sizeof</span><span style="color: Olive;">(</span><span style="color: Blue;">cvalue</span><span style="color: Olive;">))</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Green;">if</span><span style="color: Gray;">&nbsp;</span><span style="color: Olive;">(</span><span style="color: Blue;">strlen</span><span style="color: Olive;">(</span><span style="color: Blue;">cname</span><span style="color: Olive;">))</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span class="hl-mlcomment">/* Cookie lives for one day (or until browser chooses </span></li>
+<li><span class="hl-mlcomment">to get rid of it, which may be immediately), </span></li>
+<li><span class="hl-mlcomment">and applies only to this script on this site. */</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">cgiHeaderCookieSetString</span><span style="color: Olive;">(</span><span style="color: Blue;">cname</span><span style="color: Gray;">, </span><span style="color: Blue;">cvalue</span><span style="color: Gray;">,</span><span style="color: Maroon;">86400</span><span style="color: Gray;">, </span><span style="color: Blue;">cgiScriptName</span><span style="color: Gray;">, </span><span style="color: Blue;">SERVER_NAME</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Olive;">}</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">}</span></li></ol></div></font></p>
+<p><font size="2"><strong>顯示我們所設定的cookie</strong></font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span class="hl-types">void</span><span style="color: Gray;"> </span><span style="color: Blue;">Cookies</span><span style="color: Olive;">()</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;"> **</span><span style="color: Blue;">array</span><span style="color: Gray;">, **</span><span style="color: Blue;">arrayStep</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;">&nbsp;</span><span style="color: Blue;">cname</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">, </span><span style="color: Blue;">cvalue</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">Cookies Submitted On This Call, With Values (Many Browsers NEVER Submit Cookies):&lt;p&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Green;">if</span><span style="color: Gray;">&nbsp;</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiCookies</span><span style="color: Olive;">(</span><span style="color: Gray;">&amp;</span><span style="color: Blue;">array</span><span style="color: Olive;">)</span><span style="color: Gray;"> != </span><span style="color: Blue;">cgiFormSuccess</span><span style="color: Olive;">)</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Green;">return</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Olive;">}</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">arrayStep</span><span style="color: Gray;"> = </span><span style="color: Blue;">array</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;table border=1&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;tr&gt;&lt;th&gt;Cookie&lt;th&gt;Value&lt;/tr&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Green;">while</span><span style="color: Gray;">&nbsp;</span><span style="color: Olive;">(</span><span style="color: Gray;">*</span><span style="color: Blue;">arrayStep</span><span style="color: Olive;">)</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;">&nbsp;</span><span style="color: Blue;">value</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;tr&gt;</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;td&gt;</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiHtmlEscape</span><span style="color: Olive;">(</span><span style="color: Gray;">*</span><span style="color: Blue;">arrayStep</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;td&gt;</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiCookieString</span><span style="color: Olive;">(</span><span style="color: Gray;">*</span><span style="color: Blue;">arrayStep</span><span style="color: Gray;">, </span><span style="color: Blue;">value</span><span style="color: Gray;">, </span><span style="color: Green;">sizeof</span><span style="color: Olive;">(</span><span style="color: Blue;">value</span><span style="color: Olive;">))</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiHtmlEscape</span><span style="color: Olive;">(</span><span style="color: Blue;">value</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">arrayStep</span><span style="color: Gray;">++; </span></li>
+<li><span style="color: Olive;">}</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;/table&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Olive;">}</span></li></ol></div></font></p>
+<p><font size="2">不過我覺得CGIC library最強的API是上傳檔案的API,我下面這個範例會把上傳的檔案擺在/tmp資料夾,所以在執行前請確定cgi檔有root權限,html的表單設計如下,記得enctype一定要設</font><font size="2">為&quot;multipart/form-data&quot;</font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span style="color: Olive;">&lt;</span><span style="color: Green;">form</span><span style="color: Gray;"> </span><span style="color: #00008b;">method</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">post</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">enctype</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">multipart/form-data</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">action</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">http://192.168.15.26/cgi-bin/test.cgi</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">File Upload:</span><span style="color: Olive;">&lt;</span><span style="color: Green;">input</span><span style="color: Gray;">&nbsp;</span><span style="color: #00008b;">type</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">file</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">name</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">file</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;"> </span><span style="color: #00008b;">value</span><span style="color: Gray;">=</span><span style="color: #8b0000;">&quot;&quot;</span><span style="color: Olive;">&gt;</span><span style="color: Gray;"> (Select A Local File)</span><span style="color: Olive;">&lt;</span><span style="color: Green;">p</span><span style="color: Olive;">&gt;</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">&lt;/</span><span style="color: Green;">form</span><span style="color: Olive;">&gt;</span></li></ol></div></font></p>
+<p><font size="2">而upload函式如下</font></p>
+<p><font size="2"><div class="hl-surround"><ol class="hl-main ln-show" title="Double click to hide line number." ondblclick = "linenumber(this)"><li class="hl-firstline"><span class="hl-types">void</span><span style="color: Gray;"> </span><span style="color: Blue;">File</span><span style="color: Olive;">()</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">cgiFilePtr</span><span style="color: Gray;">&nbsp;</span><span style="color: Blue;">file</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;"> </span><span style="color: Blue;">name</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;"> </span><span style="color: Blue;">contentType</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;"> </span><span style="color: Blue;">buffer</span><span style="color: Olive;">[</span><span style="color: Maroon;">1024</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">int</span><span style="color: Gray;"> </span><span style="color: Blue;">size</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">int</span><span style="color: Gray;"> </span><span style="color: Blue;">got</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">FILE</span><span style="color: Gray;"> *</span><span style="color: Blue;">fp</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">char</span><span style="color: Gray;">&nbsp;</span><span style="color: Blue;">temp</span><span style="color: Olive;">[</span><span style="color: Maroon;">256</span><span style="color: Olive;">]</span><span style="color: Gray;">; </span></li>
+<li><span class="hl-types">int</span><span style="color: Gray;"> </span><span style="color: Blue;">realwrite</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Green;">if</span><span style="color: Gray;">&nbsp;</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiFormFileName</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">file</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, </span><span style="color: Blue;">name</span><span style="color: Gray;">, </span><span style="color: Green;">sizeof</span><span style="color: Olive;">(</span><span style="color: Blue;">name</span><span style="color: Olive;">))</span><span style="color: Gray;"> != </span><span style="color: Blue;">cgiFormSuccess</span><span style="color: Olive;">)</span><span style="color: Gray;"> </span><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">printf</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;p&gt;No file was uploaded.&lt;p&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Green;">return</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Olive;">}</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">The filename submitted was: </span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiHtmlEscape</span><span style="color: Olive;">(</span><span style="color: Blue;">name</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">sprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">temp</span><span style="color: Gray;">,</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">touch /tmp/%s</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">,</span><span style="color: Blue;">name</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">system</span><span style="color: Olive;">(</span><span style="color: Blue;">temp</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;p&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiFormFileSize</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">file</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, &amp;</span><span style="color: Blue;">size</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">The file size was: %d bytes&lt;p&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, </span><span style="color: Blue;">size</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiFormFileContentType</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">file</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, </span><span style="color: Blue;">contentType</span><span style="color: Gray;">, </span><span style="color: Green;">sizeof</span><span style="color: Olive;">(</span><span style="color: Blue;">contentType</span><span style="color: Olive;">))</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">The alleged content type of the file was: </span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiHtmlEscape</span><span style="color: Olive;">(</span><span style="color: Blue;">contentType</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;p&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Green;">if</span><span style="color: Gray;">&nbsp;</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiFormFileOpen</span><span style="color: Olive;">(</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">file</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">, &amp;</span><span style="color: Blue;">file</span><span style="color: Olive;">)</span><span style="color: Gray;"> != </span><span style="color: Blue;">cgiFormSuccess</span><span style="color: Olive;">)</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">Could not open the file.&lt;p&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Green;">return</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Olive;">}</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;pre&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">sprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">temp</span><span style="color: Gray;">,</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">/tmp/%s</span><span style="color: #8b0000;">&quot;</span><span style="color: Gray;">,</span><span style="color: Blue;">name</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fp</span><span style="color: Gray;">=</span><span style="color: Blue;">fopen</span><span style="color: Olive;">(</span><span style="color: Blue;">temp</span><span style="color: Gray;">,</span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">w</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Green;">while</span><span style="color: Gray;">&nbsp;</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiFormFileRead</span><span style="color: Olive;">(</span><span style="color: Blue;">file</span><span style="color: Gray;">, </span><span style="color: Blue;">buffer</span><span style="color: Gray;">, </span><span style="color: Green;">sizeof</span><span style="color: Olive;">(</span><span style="color: Blue;">buffer</span><span style="color: Olive;">)</span><span style="color: Gray;">, &amp;</span><span style="color: Blue;">got</span><span style="color: Olive;">)</span><span style="color: Gray;"> ==</span><span style="color: Blue;">cgiFormSuccess</span><span style="color: Olive;">)</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Olive;">{</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">fwrite</span><span style="color: Olive;">(</span><span style="color: Blue;">buffer</span><span style="color: Gray;">,</span><span style="color: Maroon;">1</span><span style="color: Gray;">,</span><span style="color: Blue;">got</span><span style="color: Gray;">,</span><span style="color: Blue;">fp</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: #ffa500;">//cgiHtmlEscapeData(buffer, got); </span></li>
+<li><span style="color: #ffa500;">//cgiHtmlEscapeData(buffer, got); </span></li>
+<li><span style="color: Olive;">}</span><span style="color: Gray;">&nbsp;</span></li>
+<li><span style="color: Blue;">fclose</span><span style="color: Olive;">(</span><span style="color: Blue;">fp</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">fprintf</span><span style="color: Olive;">(</span><span style="color: Blue;">cgiOut</span><span style="color: Gray;">, </span><span style="color: #8b0000;">&quot;</span><span style="color: Red;">&lt;/pre&gt;</span><span style="color: Navy;">\</span><span style="color: Red;">n</span><span style="color: #8b0000;">&quot;</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Blue;">cgiFormFileClose</span><span style="color: Olive;">(</span><span style="color: Blue;">file</span><span style="color: Olive;">)</span><span style="color: Gray;">; </span></li>
+<li><span style="color: Olive;">}</span></li></ol></div></font></p>
+<p><font size="2">我所有的範例請下載這個<a href="http://daydreamer.idv.tw/pimg/linux/test.tgz">壓縮包</a>,裡面包含所有的CGIC library API的測試,測試畫面如下圖</font></p>
+<p><img alt="" src="http://daydreamer.idv.tw/pimg/linux/cgic.jpg" /></p>	  </div>
+	  
+	  	  <div class="Content-body">
+						<img src="images/tag.gif" style="margin:4px 2px -4px 0px" alt=""/><strong>標籤:</strong> 
+		<a href="rewrite.php/tags-linux.html">linux</a> <br />
+			  </div>
+	  
+	  <div class="Content-bottom">
+		<div class="ContentBLeft"></div>
+		<div class="ContentBRight"></div>
+		<a href="rewrite.php/read-29.html#comm_top">評論: <span id="commNums">0</span></a> |
+		引用: 0 |
+		閱讀: 238 
+	    	    	    	
+		
+		
+	  </div>
+	</div>
+			  <div class="comment">
+			<div class="commenttop">
+				<img src="images/tag.gif" alt="" style="margin:0px 4px -3px 0px"/><strong>顯示Tag關聯文章</strong> 
+			</div>
+			<div class="commentcontent">
+							<a href="rewrite.php/read-35.html">
+				C與C++ List library的比較-武林高手,各有千秋 (2008-09-22 13:17)</a>  <br />
+							<a href="rewrite.php/read-32.html">
+				Expat+SCEW-操弄XML的瑞士刀 (2008-09-04 18:38)</a>  <br />
+							<a href="rewrite.php/read-24.html">
+				關於CentOS5 YUM套件管理系統 (2008-08-21 11:43)</a>  <br />
+							<a href="rewrite.php/read-22.html">
+				Asterisk-強悍的PBX平台 (2008-07-24 18:44)</a>  <br />
+							<a href="rewrite.php/read-21.html">
+				QEMU之奇怪體驗-Serial輸出篇 (2008-07-23 20:42)</a>  <br />
+							<a href="rewrite.php/read-19.html">
+				Linux虛擬機器-QEMU初體驗 (2008-07-10 17:03)</a>  <br />
+							<a href="rewrite.php/read-18.html">
+				檢查程式記憶體的小工具-valgrind (2008-07-08 18:56)</a>  <br />
+							<a href="rewrite.php/read-6.html">
+				強大的檔案控管機制-Inotify (2008-05-30 10:45)</a>  <br />
+						</div>
+		   </div>
+			</div>
+	<a name="comm_top" href="comm_top" accesskey="C"></a>
+		<div id="Content_ContentList" class="content-width">
+		<div class="pageContent" style="OVERFLOW: hidden; LINE-HEIGHT: 140%; HEIGHT: 18px; TEXT-ALIGN: right">
+		  <div class="page" style="float:left"><span id="load_ajax_msg"></span></div>
+		</div>
+	</div>
+<a name="tb_top" href="tb_top"></a>
+<script type="text/javascript">
+<!--
+function isNull(field,message) {
+	if (field.value=="") {
+		alert(message + '\t');
+		field.focus();
+		return true;
+	}
+	return false;
+}
+
+function onclick_update(form) {
+			if (strlen(form.username.value)<3){
+			alert('對不起，您輸入的暱稱小於3個字符, 請輸入一個較長的暱稱名(支持中文)');
+			form.username.focus();
+			return false;
+		}
+		if (/[\'\"\\]/.test(form.username.value)){
+			alert('暱稱包含敏感字符或被系統屏蔽');
+			form.username.focus();
+			return false;
+		}
+			if (isNull(form.message, '請輸入你的留言內容')) return false;
+
+	form.save.disabled = true;
+	form.reback.disabled = true;
+	
+	var postData="ajax_display=comment_post&id=29";
+	postData+="&message="+f2_ajax_encode(form.message.value);
+			postData+="&bookface="+form.bookface.value;
+				postData+="&username="+f2_ajax_encode(form.username.value);
+		postData+="&replypassword="+f2_ajax_encode(form.replypassword.value);
+		postData+="&homepage="+f2_ajax_encode(form.homepage.value);
+		postData+="&email="+f2_ajax_encode(form.email.value);
+				if (form.isSecret.checked){
+			postData+="&isSecret=1";
+		}else{
+			postData+="&isSecret=0";
+		}		
+				f2_ajax_post(postData);
+}
+
+function f2_ajax_response(returnvalue) {
+		if (trim(returnvalue)=="") {//处理正常
+		document.frm.message.value = "";
+		document.getElementById("commNums").innerHTML = parseInt(document.getElementById("commNums").innerHTML)+1;
+		f2_ajax_page("f2blog_ajax.php?ajax_display=comment_page&load=read&id=29&page=0");
+	}else{
+		alert(returnvalue);
+	}
+	document.frm.save.disabled = false;
+	document.frm.reback.disabled = false;
+}
+
+
+function quickpost(event) {
+	if((event.ctrlKey && event.keyCode == 13)||(event.altKey && event.keyCode == 83))	{
+		onclick_update(this.document.frm);
+	}	
+}
+
+-->
+</script>
+<div id="MsgContent" style="width:94%;">
+  <div id="MsgHead">發表評論</div>
+  <div id="MsgBody">
+    <form name="frm" action="" method="post" style="margin:0px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+					<tr>
+			  <td align="right" width="18%" style="font-weight:bold">暱　稱:</td>
+			  <td width="33%" align="left" style="padding:3px;">
+				<input name="username" type="text" onkeydown="quickpost(event)" size="18" class="userpass" maxlength="24" value=""/>
+			  </td>		  
+			  <td width="18%" align="right" style="font-weight:bold">密　碼:</td>
+			  <td width="33%" align="left" style="padding:3px;">
+				<input name="replypassword" type="password" size="18" class="userpass" maxlength="24" value=""/>
+			  </td>
+			</tr> 
+			<tr>
+			  <td width="18%" align="right" valign="top" style="font-weight:bold">網　址:</td>
+			  <td width="33%" align="left" style="padding:2px;">
+				<input name="homepage" type="text" size="18" class="userpass" maxlength="50" value=""/>
+			  </td>
+			  <td width="18%" align="right" style="font-weight:bold">E - mail:</td>
+			  <td width="33%" align="left" style="padding:3px;">
+				<input name="email" type="text" size="18" class="userpass" maxlength="50" value=""/>
+			  </td>
+			</tr>		
+						<tr>
+			  <td align="right" width="18%" style="font-weight:bold">選　項:</td>
+			  <td width="33%" align="left" style="padding:3px;">
+				<label for="label5">
+				<input name="isSecret" type="checkbox" id="label5" value="1" />
+				隱藏留言				</label>		  
+			  </td>
+			  <td width="18%" align="right" style="padding:3px;">&nbsp; </td>
+			  <td width="33%" align="left" style="padding:3px;">&nbsp; </td>
+        </tr>
+								<tr>
+		  <td align="right" width="18%" valign="top" style="font-weight:bold">頭　像:</td>
+		  <td colspan="3" style="padding:2px;" align="left">
+			   <input type="hidden" name="bookface" value="face1"/>
+			   <a href="javascript:void(0)" class="CFace" id="face1" onclick="selectFace('face1')"><img src="images/avatars/1.gif" alt="" border="0" width="45px" height="45px" /></a>
+			   				<a href="javascript:void(0)" class="LFace" id="face2" onclick="selectFace('face2')"><img src="images/avatars/2.gif" alt="" border="0" width="45px" height="45px" /></a>
+			   				<a href="javascript:void(0)" class="LFace" id="face3" onclick="selectFace('face3')"><img src="images/avatars/3.gif" alt="" border="0" width="45px" height="45px" /></a>
+			   				<a href="javascript:void(0)" class="LFace" id="face4" onclick="selectFace('face4')"><img src="images/avatars/4.gif" alt="" border="0" width="45px" height="45px" /></a>
+			   				<a href="javascript:void(0)" class="LFace" id="face5" onclick="selectFace('face5')"><img src="images/avatars/5.gif" alt="" border="0" width="45px" height="45px" /></a>
+			   				<a href="javascript:void(0)" class="LFace" id="face6" onclick="selectFace('face6')"><img src="images/avatars/6.gif" alt="" border="0" width="45px" height="45px" /></a>
+			   				<a href="javascript:void(0)" class="LFace" id="face7" onclick="selectFace('face7')"><img src="images/avatars/7.gif" alt="" border="0" width="45px" height="45px" /></a>
+			   		  </td></tr>
+		<tr>
+		          <td align="right" width="18%" valign="top" style="font-weight:bold">內　容:</td>
+          <td colspan="3" style="padding:2px;">
+            <script language="javascript" type="text/javascript" src="editor/ubb/UBBCode.js"></script>
+<script language="javascript" type="text/javascript" src="editor/ubb/UBBCode_help_zh_tw.js"></script>
+<textarea id="editMask" class="editTextarea" style="width:99%;height:100px" onfocus="showUBB('Message')"></textarea>
+<div id="editorbody" style="display:none">
+   <div id="editorHead"></div>
+   <script>var ubbTools='<div class="editorTools"><div class="Toolsbar"><ul class="ToolsUL"><li><a id="f_bold" href="javascript:UBB_bold();" title="粗體" class="Toolsbutton"><img src="./skins/google_right/UBB/Icons/bold.gif" border="0" alt="粗體" /></a></li><li><a id="f_italic" href="javascript:UBB_italic();" title="斜體" class="Toolsbutton"><img src="./skins/google_right/UBB/Icons/italic.gif" border="0" alt="斜體" /></a></li><li><a id="f_underline" href="javascript:UBB_underline();" title="底線" class="Toolsbutton"><img src="./skins/google_right/UBB/Icons/underline.gif" border="0" alt="底線" /></a></li></ul></div><div class="Toolsbar"><ul class="ToolsUL"><li><a id="f_image" href="javascript:UBB_image();" title="插入圖片" class="Toolsbutton"><img src="./skins/google_right/UBB/Icons/image.gif" border="0" alt="插入圖片" /></a></li><li><a id="f_link" href="javascript:UBB_link();" title="超連結" class="Toolsbutton"><img src="./skins/google_right/UBB/Icons/link.gif" border="0" alt="超連結" /></a></li><li><a id="f_mail" href="javascript:UBB_mail();" title="電子郵件" class="Toolsbutton"><img src="./skins/google_right/UBB/Icons/mail.gif" border="0" alt="電子郵件" /></a></li><li><a id="f_quote" href="javascript:UBB_quote();" title="插入引用" class="Toolsbutton"><img src="./skins/google_right/UBB/Icons/quote.gif" border="0" alt="插入引用" /></a></li></ul></div><div style="clear: both;display: block;height:1px;overflow:hidden"></div></div>'</script>
+  <div class="editorContent">
+	    <textarea name="message" onkeydown="quickpost(event)" class="editTextarea" style="height:150px;" cols="1" rows="1" accesskey="R"></textarea>
+  </div>
+</div>
+<script language="javascript" type="text/javascript">initUBB("message")</script>
+          </td>
+        </tr>        
+        <tr>
+          <td colspan="4" align="center" style="padding:3px;">
+            <input name="save" type="button" class="userbutton" value="發表評論" onclick="Javascript:onclick_update(this.form)"/>
+            <input name="reback" type="reset" class="userbutton" value="重寫"/>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
+</div>
+		          <div id="mainContent-bottomimg"></div>
+      </div>
+    </div>
+	<!--处理侧边栏-->
+    <div id="sidebar">
+      <div id="innersidebar">
+        <div id="sidebar-topimg"><!--工具条顶部图象--></div>
+		<!--侧边栏显示内容-->
+        <!--類別--><div class="sidepanel" id="Side_Category">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_Category')">類別</h4>  <div class="Pcontent" id="content_Category" style="display:">	<div class="CategoryTable" id="Category_Body"><script type="text/javascript">
+	function openCategory(category) {
+		var oLevel1 = document.getElementById("category_" + category);
+		var oImg = oLevel1.getElementsByTagName("img")[0];
+		switch (oImg.src.substr(oImg.src.length - 10, 6)) {
+			case "isleaf":
+				return true;
+			case "closed":
+				oImg.src = "images/tree/folder_gray/tab_opened.gif";
+				showLayer("category_" + category + "_children");
+				expanded = true;
+				return true;
+			case "opened":
+				oImg.src = "images/tree/folder_gray/tab_closed.gif";
+				hideLayer("category_" + category + "_children");
+				expanded = false;
+				return true;
+		}
+		return false;
+	}
+	
+	function showLayer(id) {
+		document.getElementById(id).style.display = "block";
+		return true;
+	}
+	
+	function hideLayer(id) {
+		document.getElementById(id).style.display = "none";
+		return true;
+	}	
+</script>
+
+<div id="treeComponent">
+  <div id="category_0" style="line-height: 100%">
+    <div style="display:inline;"><img src="images/tree/folder_gray/tab_top.gif" width="16" align="top" alt=""/></div>
+    <div style="display:inline; vertical-align:middle; padding-left:3px; cursor:pointer;">
+      <a href='index.php'>所有分類 (36)</a> <span class="rss"><a href='rss.php'>[RSS]</a></span></div>
+  </div>
+  <div id="category_category_1" style="line-height: 100%">
+    <div style="display:inline; background-image: url('images/tree/folder_gray/navi_back_noactive.gif')"><a class="click"><img src="images/tree/folder_gray/tab_isleaf.gif" align="top" alt=""/></a></div>
+    <div style="display:inline;" title="未分類文章">
+      <div id="text_1" style="padding-left:3px; cursor:pointer;display:inline; vertical-align:middle;"><a href='rewrite.php/category-1.html'>未分類文章	  (0)</a> <span class="rss"><a href='rss.php?cateID=1'>[RSS]</a></span></div>
+    </div>
+  </div>
+      <div id="category_category_2" style="line-height: 100%">
+    <div style="display:inline; background-image: url('images/tree/folder_gray/navi_back_noactive.gif')"><a class="click"><img src="images/tree/folder_gray/tab_isleaf.gif" align="top" alt=""/></a></div>
+    <div style="display:inline;" title="嵌入式系統相關文章">
+      <div id="text_2" style="padding-left:3px; cursor:pointer;display:inline; vertical-align:middle;"><a href='rewrite.php/category-2.html'>嵌入式系統	  (20)</a> <span class="rss"><a href='rss.php?cateID=2'>[RSS]</a></span></div>
+    </div>
+  </div>
+      <div id="category_category_3" style="line-height: 100%">
+    <div style="display:inline; background-image: url('images/tree/folder_gray/navi_back_noactive.gif')"><a class="click"><img src="images/tree/folder_gray/tab_isleaf.gif" align="top" alt=""/></a></div>
+    <div style="display:inline;" title="程式設計相關文章">
+      <div id="text_3" style="padding-left:3px; cursor:pointer;display:inline; vertical-align:middle;"><a href='rewrite.php/category-3.html'>程式設計	  (6)</a> <span class="rss"><a href='rss.php?cateID=3'>[RSS]</a></span></div>
+    </div>
+  </div>
+      <div id="category_category_4" style="line-height: 100%">
+    <div style="display:inline; background-image: url('images/tree/folder_gray/navi_back_noactive.gif')"><a class="click"><img src="images/tree/folder_gray/tab_isleaf.gif" align="top" alt=""/></a></div>
+    <div style="display:inline;" title="軟體使用相關說明">
+      <div id="text_4" style="padding-left:3px; cursor:pointer;display:inline; vertical-align:middle;"><a href='rewrite.php/category-4.html'>軟體使用	  (5)</a> <span class="rss"><a href='rss.php?cateID=4'>[RSS]</a></span></div>
+    </div>
+  </div>
+      <div id="category_category_5" style="line-height: 100%">
+    <div style="display:inline; background-image: url('images/tree/folder_gray/navi_back_noactive_end.gif')"><a class="click"><img src="images/tree/folder_gray/tab_isleaf.gif" align="top" alt=""/></a></div>
+    <div style="display:inline;" title="菜香根心理學">
+      <div id="text_5" style="padding-left:3px; cursor:pointer;display:inline; vertical-align:middle;"><a href='rewrite.php/category-5.html'>菜香耕心理學	  (5)</a> <span class="rss"><a href='rss.php?cateID=5'>[RSS]</a></span></div>
+    </div>
+  </div>
+    </div>
+	</div>   </div>   <div class="Pfoot"></div> </div> <!--熱門標籤--><div class="sidepanel" id="Side_HotTags">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_HotTags')">熱門標籤</h4>  <div class="Pcontent" id="content_HotTags" style="display:">	<div class="HotTagsTable" id="HotTags_Body">	<a href="rewrite.php/tags-embedded.html" style="color:#f60" title="網誌數量: 20">embedded</a> 
+	<a href="rewrite.php/tags-linux.html" style="color:#690" title="網誌數量: 9">linux</a> 
+	<a href="rewrite.php/tags-%E5%BF%83%E7%90%86%E5%AD%B8.html" style="color:#09c" title="網誌數量: 5">心理學</a> 
+	<a href="rewrite.php/tags-software.html" style="color:#09c" title="網誌數量: 2">software</a> 
+	<a href="rewrite.php/tags-python.html" style="color:#999" title="網誌數量: 1">python</a> 
+	</div>   </div>   <div class="Pfoot"></div> </div> <!--最新網誌--><div class="sidepanel" id="Side_NewLogForPJBlog">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_NewLogForPJBlog')">最新網誌</h4>  <div class="Pcontent" id="content_NewLogForPJBlog" style="display:">	<div class="NewLogForPJBlogTable" id="NewLogForPJBlog_Body">	<a class="sideA" id="NewLog_Link_37" title="Joey 於 2008-10-03 18:57 發表 Telnet daemon-RS232以外的選擇" href="rewrite.php/read-37.html">Telnet daemon-RS232以外的選擇</a> 
+	<a class="sideA" id="NewLog_Link_36" title="Joey 於 2008-10-01 19:44 發表 在嵌入式系統切換file system-以squashfs和jffs2為例" href="rewrite.php/read-36.html">在嵌入式系統切換file system-以squashfs和jffs2為例</a> 
+	<a class="sideA" id="NewLog_Link_35" title="Joey 於 2008-09-22 13:17 發表 C與C++ List library的比較-武林高手,各有千秋" href="rewrite.php/read-35.html">C與C++ List library的比較-武林高手,各有千秋</a> 
+	<a class="sideA" id="NewLog_Link_34" title="Joey 於 2008-09-12 14:03 發表 Linux kernel module-進入系統核心的鑰匙" href="rewrite.php/read-34.html">Linux kernel module-進入系統核心的鑰匙</a> 
+	<a class="sideA" id="NewLog_Link_33" title="Joey 於 2008-09-05 14:46 發表 SQLite-麻雀雖小五臟俱全" href="rewrite.php/read-33.html">SQLite-麻雀雖小五臟俱全</a> 
+	<a class="sideA" id="NewLog_Link_32" title="Joey 於 2008-09-04 18:38 發表 Expat+SCEW-操弄XML的瑞士刀" href="rewrite.php/read-32.html">Expat+SCEW-操弄XML的瑞士刀</a> 
+	<a class="sideA" id="NewLog_Link_31" title="Joey 於 2008-09-03 13:44 發表 lighttpd+CGI+ipkg-遠端韌體更新的好幫手" href="rewrite.php/read-31.html">lighttpd+CGI+ipkg-遠端韌體更新的好幫手</a> 
+	<a class="sideA" id="NewLog_Link_30" title="Joey 於 2008-09-02 17:21 發表 Shared library on embedded platform-以ARM9和uClibc為例" href="rewrite.php/read-30.html">Shared library on embedded platform-以ARM9和uClibc為例</a> 
+	<a class="sideA" id="NewLog_Link_29" title="Joey 於 2008-08-29 15:52 發表 用pure C寫CGI的輔助工具-CGIC library" href="rewrite.php/read-29.html">用pure C寫CGI的輔助工具-CGIC library</a> 
+	<a class="sideA" id="NewLog_Link_28" title="Joey 於 2008-08-27 16:44 發表 SQUASHFS-Linux壓縮型檔案系統的王者" href="rewrite.php/read-28.html">SQUASHFS-Linux壓縮型檔案系統的王者</a> 
+	</div>   </div>   <div class="Pfoot"></div> </div> <!--歸檔--><div class="sidepanel" id="Side_Archive">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_Archive')">歸檔</h4>  <div class="Pcontent" id="content_Archive" style="display:">	<div class="ArchiveTable" id="Archive_Body">	<a class="sideA" id="Archive_Link_1" href="rewrite.php/archives-200810.html">2008 年 10 月 [2]</a> 	<a class="sideA" id="Archive_Link_2" href="rewrite.php/archives-200809.html">2008 年 09 月 [6]</a> 	<a class="sideA" id="Archive_Link_3" href="rewrite.php/archives-200808.html">2008 年 08 月 [7]</a> 	<a class="sideA" id="Archive_Link_4" href="rewrite.php/archives-200807.html">2008 年 07 月 [10]</a> 	<a class="sideA" id="Archive_Link_5" href="rewrite.php/archives-200806.html">2008 年 06 月 [6]</a> 	</div>   </div>   <div class="Pfoot"></div> </div> <!--搜尋--><div class="sidepanel" id="Side_Search">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_Search')">搜尋</h4>  <div class="Pcontent" id="content_Search" style="display:">	<div class="SearchTable" id="Search_Body"><form style="MARGIN: 0px" onsubmit="if (this.seekname.value.length&lt;1) {alert('關鍵字不能少於1個字!');this.seekname.focus();return false}" action="index.php"> 
+  關鍵字   <input class="userpass" name="seekname" onmouseup="document.getElementById('searchbar').style.display=''"/> 
+	<div style="overflow: hidden; height: 3px">&nbsp;</div> 
+  <div id="searchbar" style="display:none"> 
+	<select name="job"> 
+	<option value="searchTitle" selected="selected">日誌標題</option> 
+	<option value="searchContent">日誌內容</option> 
+	<option value="searchAll">標題與內容</option> 
+	</select> 
+  <input name="submit" type="submit" class="userbutton" value="搜尋" /> 
+  </div> 
+</form> 
+	</div>   </div>   <div class="Pfoot"></div> </div> <!--最新評論--><div class="sidepanel" id="Side_Comment">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_Comment')">最新評論</h4>  <div class="Pcontent" id="content_Comment" style="display:">	<div class="CommentTable" id="Comment_Body">	<a class="sideA" id="comments_Link_39" title="Joey 於 2008-10-09 23:16 發表評論 如果您製作image的步驟和u-boot分割區都都沒錯那就要檢查linux kernel的選項是否都選對,partition table是否分割正確,如果flash driver+partition table都設定正確,file system沒道理跑不起來"  href="rewrite.php/read-36.html#book39">如果您製作image的步</a> 	<a class="sideA" id="comments_Link_38" title="ahdeng 於 2008-10-09 18:05 發表評論 我在u-boot直接把FS燒錄在mtd2對應的FLASH ADDRESS，但是仍無法mount起來，有可能是什麼原因?"  href="rewrite.php/read-36.html#book38">我在u-boot直接把F</a> 	<a class="sideA" id="comments_Link_37" title="Joey 於 2008-10-07 21:00 發表評論 可以直接燒錄,不需轉換..."  href="rewrite.php/read-36.html#book37">可以直接燒錄,不需轉換.</a> 	<a class="sideA" id="comments_Link_36" title="ahdeng 於 2008-10-07 10:03 發表評論 請問FS是否可在U-BOOT直接燒錄?需要做轉換嗎?"  href="rewrite.php/read-36.html#book36">請問FS是否可在U-BO</a> 	<a class="sideA" id="comments_Link_35" title="Joey 於 2008-10-03 09:20 發表評論 Hi..I don&#39;t use MSN, but we can discuss via email"  href="rewrite.php/read-36.html#book35">Hi..I don&</a> 	<a class="sideA" id="comments_Link_34" title="路人 於 2008-10-02 18:23 發表評論 該內容只有管理員可見"  href="rewrite.php/read-36.html#book34">該內容只有管理員可見</a> 	<a class="sideA" id="comments_Link_33" title="Joey 於 2008-10-02 17:18 發表評論 Hi.可以看你partition table的設定嗎?為什麼會writing data to 0x00000000-0x00002800 on /dev/mtd2如果設定正確,燒錄應該不是問題...."  href="rewrite.php/read-36.html#book33">Hi.可以看你parti</a> 	<a class="sideA" id="comments_Link_32" title="路人 於 2008-10-02 14:25 發表評論 /bin # cat /proc/mtd dev:    size   erasesize  namemtd0: 00800000 00010000 &quot;MX29LV640BBTC&quot;mtd1: 00200000 00010000 &quot;Kernel(2M)&quot;mtd2: 00400000 00010000 &quot;File System(4M)&quot;mtd3: 00180000 00010000 &quot;Other(1.5M)&quot;mtd4: 00080000 00010000 &quot;U-boot(512K)&quot;/bin # flashcp -v /mnt/tmp/squash~1.roo /dev/mtd2Erasing blocks: 24/24 (100%)Writing data: 10k/1500k (0%)While writing data to 0x00000000-0x00002800 on /dev/mtd2: Input/output error請問出現Input/output error大約是那種可能?"  href="rewrite.php/read-36.html#book32">/bin # cat /</a> 	<a class="sideA" id="comments_Link_31" title="Joey 於 2008-10-02 13:07 發表評論 請用flashcp,for example:flashcp -v squashfs.root /dev/mtd3"  href="rewrite.php/read-36.html#book31">請用flashcp,fo</a> 	<a class="sideA" id="comments_Link_30" title="路人 於 2008-10-02 09:30 發表評論 如果是用nor flash的話，在erase完成後，要如何寫到mtd裡?用 cat /tmp/squashfs.root &gt; /dev/mtd2 這種方式可嗎?"  href="rewrite.php/read-36.html#book30">如果是用nor flas</a> 	</div>   </div>   <div class="Pfoot"></div> </div> <!--最新留言--><div class="sidepanel" id="Side_GuestBookForPJBlogSubItem1">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_GuestBookForPJBlogSubItem1')">最新留言</h4>  <div class="Pcontent" id="content_GuestBookForPJBlogSubItem1" style="display:">	<div class="GuestBookForPJBlogSubItem1Table" id="GuestBookForPJBlogSubItem1_Body">	<a class="sideA" id="GuestBook_Link3" title="Joey 於 2008-06-09 13:05 發表留言 請問你的開發環境和目錄是怎麼擺的?發生問題的情況是?"  href="rewrite.php/guestbook.html#book3">請問你的開發環境和目錄是</a> 	<a class="sideA" id="GuestBook_Link2" title="大頭 於 2008-06-09 11:00 發表留言 你好請問一下我可以請問你一下關於你使用j-link 得使用的情行嗎因為我要單步trace u-boot 都不成功ㄟ?可以請教你一下嗎?"  href="rewrite.php/guestbook.html#book2">你好請問一下我可以請</a> 	</div>   </div>   <div class="Pfoot"></div> </div> <!--碎碎念--><div class="sidepanel" id="Side_Plurk">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_Plurk')">碎碎念</h4>  <div class="Pcontent" id="content_Plurk" style="display:">	<div class="PlurkTable" id="Plurk_Body"><div style="width:200px; height:375px;"><iframe src="http://www.plurk.com/getWidget?uid=202932&h=375&w=200&u_info=1&bg=c9d7f1&tl=e5ecf9" width="200" frameborder="0" height="375" scrolling="no"></iframe><div style="float: right; padding: 1px;"> <a href="http://plurk.com/" target="_blank" style="font-size: 10px !important; color: #999 !important; border: none; text-decorate: none;" title="Plurk - A Social Journal for your life">Plurk.com</a></div></div><img style="visibility:hidden;width:0px;height:0px;" border=0 width=0 height=0 src="http://counters.gigya.com/wildfire/CIMP/bT*xJmx*PTEyMTU1MTU1MjI5ODMmcHQ9MTIxNTUxNTg5NTY*NSZwPTI3MTM3MSZkPSZuPSZnPTE=.jpg" />	</div>   </div>   <div class="Pfoot"></div> </div> <!--部落格軌道--><div class="sidepanel" id="Side_MCSE">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_MCSE')">部落格軌道</h4>  <div class="Pcontent" id="content_MCSE" style="display:">	<div class="MCSETable" id="MCSE_Body"><script type="text/javascript"><!--
+bo_id = "jemic";
+bo_width = 200;
+bo_height = 300;
+//-->
+</script>
+<script src="http://www.blog-orbit.com/BOWidget.js" type="text/javascript"></script>	</div>   </div>   <div class="Pfoot"></div> </div> <!--最近的訪客--><div class="sidepanel" id="Side_fupblog">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_fupblog')">最近的訪客</h4>  <div class="Pcontent" id="content_fupblog" style="display:">	<div class="fupblogTable" id="fupblog_Body"><script src="http://pub.mybloglog.com/comm3.php?mblID=2008090300440537&r=widget&is=small&o=l&ro=3&cs=blue&ww=200&wc=multiple&l=a"></script>	</div>   </div>   <div class="Pfoot"></div> </div> <!--統計--><div class="sidepanel" id="Side_BlogInfo">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_BlogInfo')">統計</h4>  <div class="Pcontent" id="content_BlogInfo" style="display:">	<div class="BlogInfoTable" id="BlogInfo_Body">今日訪問: 14<br />
+昨日訪問: 141<br />
+總訪問量: 7253<br />
+在線人數: 2<br />
+日誌數量: 36	</div>   </div>   <div class="Pfoot"></div> </div> <!--奇摩站長工具--><div class="sidepanel" id="Side_奇摩站長工具">  <h4 class="Ptitle" style="cursor: pointer;" onclick="sidebarTools('content_奇摩站長工具')">奇摩站長工具</h4>  <div class="Pcontent" id="content_奇摩站長工具" style="display:">	<div class="奇摩站長工具Table" id="奇摩站長工具_Body"><script type="text/javascript" src="http://tw.js.webmaster.yahoo.com/25211/ystat.js"></script><noscript><a href="http://tw.webmaster.yahoo.com"><img src=http://tw.img.webmaster.yahoo.com/25211/ystats.gif></a></noscript>	</div>   </div>   <div class="Pfoot"></div> </div>         <div id="sidebar-bottomimg"></div>
+      </div>
+    </div>
+    <div style="clear: both;height:1px;overflow:hidden;margin-top:-1px;"></div>
+  </div>
+  <!--底部-->
+  <div id="foot">
+    <p>
+		<strong><a href="mailto:jemicheng@gmail.com">Joey</a></strong> 's blog
+		Powered By <a href="http://www.f2blog.com" target="_blank"><strong>F2blog v1.2 build 03.01</strong></a>
+		CopyRight 2006  - 2008		<a href="http://validator.w3.org/check/referer" target="_blank">XHTML</a> |
+		<a href="http://jigsaw.w3.org/css-validator/validator-uri.html" target="_blank">CSS</a> |
+		<a href="archives/index.php" target="_blank">Archiver</a>
+	</p>
+    <p style="font-size:11px;">
+		<a href="http://www.8gov.com/blog/" target="_blank"><strong>Google Style</strong></a>
+		Design by <a href="mailto:info@8gov.com">8gov</a> Skin from pjblog		    </p>
+  </div>
+</div>
+</body>
+</html>

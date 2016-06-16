@@ -1,0 +1,560 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+
+
+
+
+  <title>Linux Tutorial: CGI Shell scripts</title>
+  <link rel="stylesheet" href="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/yolinux.css" type="text/css">
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <meta name="keywords" content="CGI,shell scripts,howto,help,setup">
+
+  <meta name="description" content="Using shell scripts for CGI with Linux. This tutorial also covers some of the pitfalls users may experience.">
+
+  <meta name="author" content="Greg Ippolito">
+</head><body bgcolor="#cccccc">
+
+<hr size="5">
+<table cellpadding="4" width="100%">
+
+  <tbody>
+    <tr>
+      <td valign="top">
+      <a href="http://www.yolinux.com/"><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/YoLinux_Tutorial_logo.png" alt="Yolinux.com Linux logo" border="none"></a>
+      </td>
+      <td valign="top">
+      <h1>CGI Shell scripts</h1>
+
+      <p>
+      </p>
+      <div align="right">
+<!-- BEGIN RICH-MEDIA BURST! CODE -->
+      <script type="text/javascript">
+   e9 = new Object();
+   e9.size = "728x90,468x60";
+   e9.noAd = 1;
+   e9.addBlockingCategories="Flashing,Pop-under,Pop-up,Floating,Full-page";
+      </script>
+      <script type="text/javascript" src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/tags.js"></script><center><script type="text/javascript" src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/j.js"></script><center><a target="_blank" href="http://a.tribalfusion.com/h.click/agmxQ0pTj45bMUVbbZcV632PT3QPVnoQWJr0tfsTPMp2VvX0UQDTPaq5mnaPAZbI4WMt1HZbKpdEo5mBS3s37UsJdVcrfSmFvWdU5TrnY5U2pUqUtVEMjQTMZbSVfZbRruCpaFyrC/http://a.tribalfusion.com"><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/37536.gif" border="0" width="1" height="1"></a></center></center>
+
+<!-- END BURST CODE -->
+      </div>
+
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<hr size="5">
+<p>
+This tutorial covers the basics of using bash shell scripts for web server CGI. 
+Default Red Hat Linux directory configurations for Apache are used in this tutorial. 
+The HTML ISINDEX tag is used for data input to the script.
+</p>
+<p>
+CGI uses two methods to pass data between the browser and the web server,
+GET and POST. The GET method passes data in the URL and is the method employed here. 
+The web server will pass environment variables into the execution environment of the CGI shell script which also may be used.
+</p>
+<p>
+</p>
+<hr size="5">
+<table bgcolor="#000000" border="1" cellpadding="4" cellspacing="1" width="100%">
+
+  <tbody>
+    <tr bgcolor="#cccccc">
+      <td bgcolor="#c0c0c0" valign="top" width="160">
+      <script type="text/javascript"><!--
+google_ad_client = "pub-8567479315106986";
+google_ad_width = 160;
+google_ad_height = 600;
+google_ad_format = "160x600_as";
+google_ad_channel ="";
+google_color_border = "FFFFFF";
+google_color_bg = "cccccc";
+google_color_link = "0000FF";
+google_color_text = "000000";
+google_color_url = "008000";
+//--></script>
+      <script type="text/javascript" src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/show_ads.js">
+      </script><script> window.google_render_ad(); </script><iframe name="google_ads_frame" src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/ads." marginwidth="0" marginheight="0" vspace="0" hspace="0" allowtransparency="true" scrolling="no" width="160" frameborder="0" height="600"></iframe>
+      </td>
+
+      <td valign="top">
+      <table border="0" cellpadding="2" cellspacing="0" width="100%">
+
+        <tbody>
+          <tr bgcolor="#ffcc33">
+            <td><b><big>Simple output of a text file:</big></b></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p> 
+CGI Shell script to output a text page: <tt>/var/www/cgi-bin/cat-a-text-page</tt>
+      </p>
+      <dl>
+        <dd>
+          <table bgcolor="#000000" border="1" cellpadding="4" cellspacing="1" width="100%">
+
+            <tbody>
+              <tr bgcolor="#c0c0c0">
+                <td>
+                <pre>#!/bin/sh<br>CAT=/bin/cat<br>COLCRT=/usr/bin/colcrt<br><br>echo Content-type: text/plain<br>echo ""<br><br>if [[ -x $CAT &amp;&amp; -x $COLCRT ]]<br>then<br>        $CAT $1 | $COLCRT<br>else<br>        echo Cannot find command on this system.<br>fi<br><br></pre>
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+      <p>
+Useage: <tt>&lt;A HREF="/cgi-bin/cat-a-text-page?/home/user1/public_html/text-file.txt"&gt;Text of link&lt;/A&gt;</tt>
+      </p>
+      <p>
+Note that the permissions on the shell script must changed to make the script executable: <tt>chmod +x cat-a-text-page</tt>
+      </p>
+      <p>
+      </p>
+      <hr size="5">
+      <table border="0" cellpadding="2" cellspacing="0" width="100%">
+
+        <tbody>
+          <tr bgcolor="#ffcc33">
+            <td><b><big>Simple example to output a text file formatted as HTML:</big></b></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p> 
+CGI Shell script: <tt>/var/www/cgi-bin/Output-text-as-html</tt>
+      </p>
+      <dl>
+        <dd>
+          <table bgcolor="#000000" border="1" cellpadding="4" cellspacing="1" width="100%">
+
+            <tbody>
+              <tr bgcolor="#c0c0c0">
+                <td>
+                <pre>#!/bin/sh<br><br>echo Content-type: text/html<br>echo ""<br><br>/bin/cat &lt;&lt; EOM<br>&lt;HTML&gt;<br>&lt;HEAD&gt;&lt;TITLE&gt;File Output: /home/user1/public_html/text-file.txt &lt;/TITLE&gt;<br>&lt;/HEAD&gt;<br>&lt;BODY bgcolor="#cccccc" text="#000000"&gt;<br>&lt;HR SIZE=5&gt;<br>&lt;H1&gt;File Output: /home/user1/public_html/text-file.txt &lt;/H1&gt;<br>&lt;HR SIZE=5&gt;<br>&lt;P&gt;<br>&lt;SMALL&gt;<br>&lt;PRE&gt;<br>EOM<br><br>/bin/cat /home/user1/public_html/text-file.txt<br><br>CAT &lt;&lt; EOM<br>&lt;/PRE&gt;<br>&lt;/SMALL&gt;<br>&lt;P&gt;<br>&lt;/BODY&gt;<br>&lt;/HTML&gt;<br>EOM<br></pre>
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+      <p>
+Useage: <tt>&lt;A HREF="/cgi-bin/Output-text-as-html"&gt;Text of link&lt;/A&gt;</tt>
+      </p>
+      <p>
+      </p>
+      <hr size="5">
+      <table border="0" cellpadding="2" cellspacing="0" width="100%">
+
+        <tbody>
+          <tr bgcolor="#ffcc33">
+            <td><b><big>Using the ISINDEX HTML tag for script input:</big></b></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p> 
+      </p>
+      <p>
+      </p>
+      <h3>The Web Page:</h3>
+
+      <dl>
+        <dd>
+          <table cellpadding="20" cellspacing="20">
+            <tbody>
+              <tr bgcolor="#c0c0c0">
+                <td>
+                <h2>Test of ISINDEX HTML tag:</h2>
+
+                <p>
+                <small>
+                </small></p>
+                <isindex prompt="Enter value:" action="http://localhost/cgi-bin/catpage">
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+      <p> 
+      </p>
+      <h3>HTML Source:</h3>
+
+      <dl>
+        <dd>
+          <table bgcolor="#000000" border="1" cellpadding="4" cellspacing="1" width="100%">
+
+            <tbody>
+              <tr bgcolor="#c0c0c0">
+                <td>
+                <pre>&lt;HTML&gt;<br>&lt;HEAD&gt;&lt;TITLE&gt;Test ISINDEX HTML tag&lt;/TITLE&gt;&lt;/HEAD&gt;<br>&lt;BODY bgcolor="#cccccc" text="#000000"&gt;<br>&lt;H2&gt;Test ISINDEX HTML tag&lt;/H2&gt;<br>&lt;ISINDEX prompt="Enter value:" action="http://localhost/cgi-bin/catpage"&gt;<br>&lt;/BODY&gt;<br>&lt;/HTML&gt;<br></pre>
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+Text entered: <tt>/tmp/text-file.txt</tt>
+      <br>
+
+The following will get generated: <tt>http://localhost/cgi-bin/catpage?%2Ftmp%2Ftext-file.txt</tt>
+      <br>
+
+The CGI will then spit out the text page specified.
+      <p>
+      <font color="#ff0000"><b>[Potential Pitfall]</b></font>: 
+Currently Mozilla 1.2.1 (Also default Red Hat 8.0 and 9.0) browsers have a bug which prevents this from operating properly.
+Konqueror, Netscape, Lynx all work properly.
+      </p>
+      <p>
+      </p>
+      <hr size="5">
+      <table border="0" cellpadding="2" cellspacing="0" width="100%">
+
+        <tbody>
+          <tr bgcolor="#ffcc33">
+            <td><b><big>Shell script using ISINDEX in simple search:</big></b></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p> 
+In this case the script will generate all displayed interfaces. 
+This example is the easiest form of a simple on-line database. (Grep/search a file and output the results of the search)
+      </p>
+      <p> 
+      </p>
+      <h3>CGI Script:</h3>
+
+CGI Shell script: <tt>/var/www/cgi-bin/isindex-search</tt>
+      <dl>
+        <dd>
+          <table bgcolor="#000000" border="1" cellpadding="4" cellspacing="1" width="100%">
+
+            <tbody>
+              <tr bgcolor="#c0c0c0">
+                <td>
+                <pre>#!/bin/sh<br><br>echo Content-type: text/html<br>echo ""<br><br>if [ $# = 0 ]<br>then<br>/bin/cat &lt;&lt; EOM1<br>  &lt;HTML&gt;<br>  &lt;HEAD&gt;&lt;TITLE&gt;Text search &lt;/TITLE&gt;<br>  &lt;/HEAD&gt;<br>  &lt;BODY bgcolor="#cccccc" text="#000000"&gt;<br>  &lt;HR SIZE=5&gt;<br>  &lt;H1&gt;Text search &lt;/H1&gt;<br>  &lt;P&gt;<br>  &lt;ISINDEX prompt="Enter search string: " action="http://localhost/cgi-bin/isindex-search"&gt;<br>  &lt;P&gt;<br>  &lt;/BODY&gt;<br>  &lt;/HTML&gt;<br>EOM1<br>else<br>/bin/cat &lt;&lt; EOM2<br>  &lt;HTML&gt;<br>  &lt;HEAD&gt;&lt;TITLE&gt;Search results for $* &lt;/TITLE&gt;<br>  &lt;/HEAD&gt;<br>  &lt;BODY bgcolor="#cccccc" text="#000000"&gt;<br>  &lt;HR SIZE=5&gt;<br>  &lt;H1&gt;Search results for $* &lt;/H1&gt;<br>  &lt;HR SIZE=5&gt;<br>  &lt;P&gt;<br>  &lt;PRE&gt;<br>EOM2<br><br>grep -i "$*" <i>/home/user1/file-to-search.txt</i>
+
+/bin/cat &lt;&lt; EOM3
+  &lt;/PRE&gt;
+  &lt;P&gt;
+  &lt;/BODY&gt;
+  &lt;/HTML&gt;
+EOM3
+fi
+                </pre>
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+      <p>
+      </p>
+      <h3>Results:</h3>
+
+      <ul>
+
+        <li>Useage: <tt>http://localhost/cgi-bin/isindex-search</tt>
+        </li>
+        <li>Enter text string to search for and press enter:
+    <br>
+
+          <dl>
+            <dd>
+              <table width="100%">
+                <tbody>
+                  <tr bgcolor="#c0c0c0">
+                    <td>
+                    <pre><hr size="5">
+<h1>Text search </h1>
+<p>
+</p><isindex prompt="Enter search string:">
+<p>
+</p></pre>
+
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+            </dd>
+          </dl>
+
+        </li>
+        <li> The script will spit out the search results of the grep in an HTML page.
+        </li>
+      </ul>
+
+      <p>
+      </p>
+      <hr size="5">
+      <table border="0" cellpadding="2" cellspacing="0" width="100%">
+
+        <tbody>
+          <tr bgcolor="#ffcc33">
+            <td><b><big>Environment variables:</big></b></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p> 
+The web server will execute the CGI script in its own process space
+but will set some usefull environment variables. To view these use the following script: <tt>/var/www/cgi-bin/env.sh</tt>
+      </p>
+      <dl>
+        <dd>
+          <table bgcolor="#000000" border="1" cellpadding="4" cellspacing="1" width="100%">
+
+            <tbody>
+              <tr bgcolor="#c0c0c0">
+                <td>
+                <pre>#!/bin/sh<br><br>echo Content-type: text/html<br>echo ""<br><br>/bin/cat &lt;&lt; EOM<br>&lt;HTML&gt;<br>&lt;HEAD&gt;&lt;TITLE&gt;File Output: /home/user1/public_html/text-file.txt &lt;/TITLE&gt;<br>&lt;/HEAD&gt;<br>&lt;BODY bgcolor="#cccccc" text="#000000"&gt;<br>&lt;P&gt;<br>&lt;SMALL&gt;<br>&lt;PRE&gt;<br>EOM<br><br>/bin/env<br><br>CAT &lt;&lt; EOM<br>&lt;/PRE&gt;<br>&lt;/SMALL&gt;<br>&lt;P&gt;<br>&lt;/BODY&gt;<br>&lt;/HTML&gt;<br>EOM<br></pre>
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+Make script executable: <tt>chmod ugo+x env.sh</tt>
+      <br>
+
+Test: <a href="http://localhost/cgi-bin/env.sh">http://localhost/cgi-bin/env.sh</a>
+      <p>
+      <b>Output:</b> (example for Red Hat 8.0)
+      </p>
+      <dl>
+        <dd>
+          <table bgcolor="#000000" border="1" cellpadding="4" cellspacing="1" width="100%">
+
+            <tbody>
+              <tr bgcolor="#c0c0c0">
+                <td>
+                <pre><pre>SERVER_SIGNATURE=<br>Apache/2.0.40 Server at localhost Port 80<br><br><br>UNIQUE_ID=DErk6n8AAAEAAAblFQEAAAAD<br>HTTP_USER_AGENT=Mozilla/4.8 [en] (X11; U; Linux 2.4.18-27.8.0 i586)<br>SERVER_PORT=80<br>HTTP_HOST=localhost<br>DOCUMENT_ROOT=/var/www/html<br>HTTP_ACCEPT_CHARSET=iso-8859-1,*,utf-8<br>SCRIPT_FILENAME=/var/www/cgi-bin/env.sh<br>REQUEST_URI=/cgi-bin/env.sh<br>SCRIPT_NAME=/cgi-bin/env.sh<br>HTTP_CONNECTION=Keep-Alive<br>REMOTE_PORT=32984<br>PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin<br>PWD=/var/www/cgi-bin<br>SERVER_ADMIN=root@localhost<br>HTTP_ACCEPT_LANGUAGE=en<br>HTTP_ACCEPT=image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, image/png, */*<br>REMOTE_ADDR=127.0.0.1<br>SHLVL=1<br>SERVER_NAME=localhost<br>SERVER_SOFTWARE=Apache/2.0.40 (Red Hat Linux)<br>QUERY_STRING=<br>SERVER_ADDR=127.0.0.1<br>GATEWAY_INTERFACE=CGI/1.1<br>SERVER_PROTOCOL=HTTP/1.0<br>HTTP_ACCEPT_ENCODING=gzip<br>REQUEST_METHOD=GET<br>_=/bin/env<br></pre>
+                </pre>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+These environment variables provided by the web server can be used in your script to suit your needs.
+      <p>
+      </p>
+      <hr size="5">
+      <table border="0" cellpadding="2" cellspacing="0" width="100%">
+
+        <tbody>
+          <tr bgcolor="#ffcc33">
+            <td><b><big>Links:</big></b></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p> 
+      </p>
+      <ul>
+
+        <li><a href="http://hoohoo.ncsa.uiuc.edu/cgi/security.html">UIUC.edu: NCSA CGI shell script security tutorial</a> - a MUST read.
+        </li>
+      </ul>
+
+      <p> 
+      </p>
+      <hr size="5">
+      <table border="0" cellpadding="2" cellspacing="0" width="100%">
+
+        <tbody>
+          <tr bgcolor="#ffcc33">
+            <td valign="top"><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/book40.gif"><b><big> Books:</big></b></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <p> 
+      </p>
+      <dl>
+        <dd>
+          <table celpadding="5" border="1" width="100%">
+
+
+    <tbody>
+              <tr>
+                <td><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/1565923472.jpg"></td>
+
+    <td valign="top">
+    "Learning the Bash Shell"
+    <br>
+
+    by Cameron Newham, Bill Rosenblatt
+    <br>
+
+    O'Reilly &amp; Associates, ISBN# 1565923472 
+    
+                <p>
+    This book is a great bash shell script book.
+    </p>
+                </td>
+
+    <td valign="top">
+    <a href="http://www.amazon.com/exec/obidos/ASIN/1565923472/yolinux-20"><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/Amazon-BuyABook88x31.gif" alt="Amazon.com"></a>
+    <br>
+
+    </td>
+              </tr>
+
+
+    <tr>
+                <td><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/0596005954.jpg"></td>
+
+    <td valign="top">
+    "Classic Shell Scripting"
+    <br>
+
+    by Arnold Robbins, Nelson H.F. Beebe 
+    <br>
+
+    O'Reilly &amp; Associates, ISBN# 0596005954 
+    
+                <p>
+    </p>
+                </td>
+
+    <td valign="top">
+    <a href="http://www.amazon.com/exec/obidos/ASIN/0596005954/yolinux-20"><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/Amazon-BuyABook88x31.gif" alt="Amazon.com"></a>
+    <br>
+
+    </td>
+              </tr>
+
+
+    <tr>
+                <td><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/1593270127.jpg"></td>
+
+    <td valign="top">
+    "Wicked Cool Shell Scripts"
+    <br>
+
+    by Dave TAylor
+    <br>
+
+    No Starch Press, ISBN# 1593270127 
+    
+                <p>
+    </p>
+                </td>
+
+    <td valign="top">
+    <a href="http://www.amazon.com/exec/obidos/ASIN/1593270127/yolinux-20"><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/Amazon-BuyABook88x31.gif" alt="Amazon.com"></a>
+    <br>
+
+    </td>
+              </tr>
+
+
+    
+            </tbody>
+          </table>
+
+        </dd>
+      </dl>
+
+      <p>
+      </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
+
+  <tbody>
+    <tr>
+      <td valign="top" width="60%">
+      <small>
+Return to <a href="http://www.yolinux.com/">http://YoLinux.com</a> for more Linux links, information and tutorials
+      <br>
+
+Return to <a href="http://www.yolinux.com/TUTORIALS/index.html">YoLinux Tutorial Index</a>
+      <br>
+
+      <a href="http://www.yolinux.com/YoLinuxEmailForm.html">Feedback Form</a>
+      </small>
+      <p>
+      <small>Copyright © 2002, 2003 by <i>Greg Ippolito</i></small>
+      </p>
+      </td>
+      <td align="right" valign="top">
+<!-- BEGIN RICH-MEDIA BURST! CODE -->
+      <script type="text/javascript">
+rnum=Math.round(Math.random() * 100000);
+document.write('<scr'+'ipt src="http://www.burstnet.com/cgi-bin/ads/ba9427a.cgi/v=2.0S/sz=468x60B/'+rnum+'/RETURN-CODE/JS/"></scr'+'ipt>');
+      </script><script src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/a"></script><a href="http://www.burstnet.com/ads/ad9427a-map.cgi/SZ=468X60B/V=2.0S/BRC=28720/BCPG11567.33500.34971/" target="_top"><img src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/ba_sv_caesar_041603.gif" border="0" width="468" height="60"></a><script type="text/javascript" src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/quant.js"></script>
+      <noscript><a href="http://www.burstnet.com/ads/ba9427a-map.cgi/ns/v=2.0S/sz=468x60B/" target="_top">
+<img src="http://www.burstnet.com/cgi-bin/ads/ba9427a.cgi/ns/v=2.0S/sz=468x60B/" border="0" alt="Click Here"></a>
+      </noscript>
+
+<!-- END BURST CODE -->
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+</p>
+<!-- Start Quantcast tag -->
+<script type="text/javascript" src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/quant.js"></script>
+<script type="text/javascript">_qacct="p-ebIBcaVUngFBQ";quantserve();</script>
+<noscript>
+<a href="http://www.quantcast.com/p-ebIBcaVUngFBQ" target="_blank"><img
+src="http://pixel.quantserve.com/pixel/p-ebIBcaVUngFBQ.gif"
+style="display: none;" border="0" height="1" width="1"
+alt="Quantcast"/></a>
+</noscript>
+<!-- End Quantcast tag -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script><script src="LinuxTutorialCgiShellScript%20%E7%9A%84%E6%96%87%E4%BB%B6/ga.js" type="text/javascript"></script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-3317450-1");
+pageTracker._initData();
+pageTracker._trackPageview();
+</script>
+
+</body></html>
