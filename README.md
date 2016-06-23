@@ -34,7 +34,7 @@ typedef struct
 ```
 
 Procedure to read ELF header:  
-1. Jump to begin of file header
+1.Jump to begin of file header
 
 ```c
 lseek(fd, 0, SEEK_SET)
@@ -109,15 +109,15 @@ Get size and offset from ELF header
 * e_shoff: offset
 
 Procedure for reading "Section header table"  
-1. Jump to Section header  
+1.Jump to Section header  
 ```c
 lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET)
 ```  
-2. Calculate size of "Section header table"  
+2.Calculate size of "Section header table"  
 ```c  
 size=Elf32_e_shentsize * Elf32_e_shnum;
 ```  
-3. Read "Section Header Table"  
+1.Read "Section Header Table"  
 ```c
 read(fd,buf,size);
 ```  
