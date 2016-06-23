@@ -12,40 +12,43 @@ ELF File Format
 #### Read ELF file header
 The begin of the file is ELF header, describ the organization of the file."section" include information of "link view", for example command, data, symbol, relocate symbol and so on.
 
-The structure of "ELF header table"
-
-
-	typedef struct
-	{
-		unsigned char e_ident[EI_NIDENT];     /* Magic number and other info */
-		Elf32_Half    e_type;                 /* Object file type */
-		Elf32_Half    e_machine;              /* Architecture */
-		Elf32_Word    e_version;              /* Object file version */
-		Elf32_Addr    e_entry;                /* Entry point virtual address */
-		Elf32_Off     e_phoff;                /* Program header table file offset */
-		Elf32_Off     e_shoff;                /* Section header table file offset */
-		Elf32_Word    e_flags;                /* Processor-specific flags */
-		Elf32_Half    e_ehsize;               /* ELF header size in bytes */
-		Elf32_Half    e_phentsize;            /* Program header table entry size */
-		Elf32_Half    e_phnum;                /* Program header table entry count */
-		Elf32_Half    e_shentsize;            /* Section header table entry size */
-		Elf32_Half    e_shnum;                /* Section header table entry count */
-		Elf32_Half    e_shstrndx;             /* Section header string table index */
-	} Elf32_Ehdr;
-
+The structure of "ELF header table"   
+```c
+typedef struct
+{
+	unsigned char e_ident[EI_NIDENT];     /* Magic number and other info */
+	Elf32_Half    e_type;                 /* Object file type */
+	Elf32_Half    e_machine;              /* Architecture */
+	Elf32_Word    e_version;              /* Object file version */
+	Elf32_Addr    e_entry;                /* Entry point virtual address */
+	Elf32_Off     e_phoff;                /* Program header table file offset */
+	Elf32_Off     e_shoff;                /* Section header table file offset */
+	Elf32_Word    e_flags;                /* Processor-specific flags */
+	Elf32_Half    e_ehsize;               /* ELF header size in bytes */
+	Elf32_Half    e_phentsize;            /* Program header table entry size */
+	Elf32_Half    e_phnum;                /* Program header table entry count */
+	Elf32_Half    e_shentsize;            /* Section header table entry size */
+	Elf32_Half    e_shnum;                /* Section header table entry count */
+	Elf32_Half    e_shstrndx;             /* Section header string table index */
+} Elf32_Ehdr;
+```
 
 Procedure to read ELF header:  
 1. Jump to begin of file header
 
-`
+```c
 lseek(fd,0,SEEK_SET)
-`
+```c
 
 2.Calculate the size of ELF header  
-` size = sizeof(Elf32_Ehdr) `
+```c 
+size = sizeof(Elf32_Ehdr) 
+```
 
 3.read ELF header to the buffer  
-` read(fd,buf,size) `
+```c
+read(fd,buf,size) 
+```
 
 #### Read Program Header table
 Data structure of "program header table"
