@@ -52,6 +52,7 @@ Howto read ELF header
 
 #### Read Program Header table
 Data structure of "program header table"
+
 `
 	typedef struct { 
 		Elf32_Word p_type; 
@@ -244,6 +245,7 @@ Key to Flags:
   I (info), L (link order), G (group), x (unknown) 
   O (extra OS processing required) o (OS specific), p (processor specific) 
 `
+
 Addr is 0 after .comment, therefore, the content after .comment can be striped. We write other segment into database. We read the it from database will get striped ELF File.
 
 Comparison
@@ -260,4 +262,4 @@ Comparison
 
 ## Acknowledgement
 Thanks to Wu Zhangjin, give us so much guidence.  
-His open source technical sebsite: [TinyLab] (http://tinylab.org/)
+His technical sebsite: [TinyLab] (http://tinylab.org/)
