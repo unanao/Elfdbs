@@ -14,7 +14,7 @@ The begin of the file is ELF header, describ the organization of the file."secti
 
 The structure of "ELF header table"
 
-`
+
 	typedef struct
 	{
 		unsigned char e_ident[EI_NIDENT];     /* Magic number and other info */
@@ -32,7 +32,7 @@ The structure of "ELF header table"
 		Elf32_Half    e_shnum;                /* Section header table entry count */
 		Elf32_Half    e_shstrndx;             /* Section header string table index */
 	} Elf32_Ehdr;
-`
+
 
 Howto read ELF header
 1. Jump to begin of file header
