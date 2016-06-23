@@ -37,7 +37,7 @@ Procedure to read ELF header:
 1. Jump to begin of file header
 
 ```c
-lseek(fd,0,SEEK_SET)
+lseek(fd, 0, SEEK_SET)
 ```c
 
 2.Calculate the size of ELF header  
@@ -47,23 +47,23 @@ size = sizeof(Elf32_Ehdr)
 
 3.read ELF header to the buffer  
 ```c
-read(fd,buf,size) 
+read(fd, buf, size) 
 ```
 
 #### Read Program Header table
-Data structure of "program header table"
-
-
-	typedef struct { 
-		Elf32_Word p_type; 
-		Elf32_Off  p_offset; 
-		Elf32_Addr p_vaddr; 
-		Elf32_Addr p_paddr; 
-		Elf32_Word p_filesz; 
-		Elf32_Word p_memsz; 
-		Elf32_Word p_flags; 
-		Elf32_Word p_align; 
-	} Elf32_phdr; 
+Data structure of "program header table"  
+```c
+typedef struct { 
+	Elf32_Word p_type; 
+	Elf32_Off  p_offset; 
+	Elf32_Addr p_vaddr; 
+	Elf32_Addr p_paddr; 
+	Elf32_Word p_filesz; 
+	Elf32_Word p_memsz; 
+	Elf32_Word p_flags; 
+	Elf32_Word p_align; 
+} Elf32_phdr; 
+```
 
 
 We can get size and offset from ELF Header
@@ -72,34 +72,34 @@ We can get size and offset from ELF Header
 
 Howto read "program header table"  
 1. Jump to program header   
-`
+```c
 lseek(fd,Elf32_Ehdr->e_phoff,SEEK_SET)
-`  
+```    
 2. Calculate size of program header table  
-`
+```c
 size=Elf32_e_phentsize * Elf32_e_phnum;
-`  
+```    
 3. Read to buffer  
-`
+```c
 read(fd,buf,size);
-`
+```  
 
 #### Read "Section Header table"
 Data structure of "section header table"
-
-	typedef struct{ 
-		Elf32_Word sh_name; 
-		Elf32_Word sh_type; 
-		Elf32_Word sh_flags; 
-		Elf32_Addr sh_addr; 
-		Elf32_Off sh_offset; 
-		Elf32_Word sh_size; 
-		Elf32_Word sh_link; 
-		Elf32_Word sh_info; 
-		Elf32_Word sh_addralign; 
-		Elf32_Word sh_entsize; 
-	}Elf32_Shdr; 
-
+```c
+typedef struct{ 
+	Elf32_Word sh_name; 
+	Elf32_Word sh_type; 
+	Elf32_Word sh_flags; 
+	Elf32_Addr sh_addr; 
+	Elf32_Off sh_offset; 
+	Elf32_Word sh_size; 
+	Elf32_Word sh_link; 
+	Elf32_Word sh_info; 
+	Elf32_Word sh_addralign; 
+	Elf32_Word sh_entsize; 
+}Elf32_Shdr; 
+```
 
 Get size and offset from ELF header
 * e_shentsize and e_shnum : size 
@@ -107,17 +107,17 @@ Get size and offset from ELF header
 
 Procedure for reading "Section header table"  
 1. Jump to Section header  
-`
-lseek(fd,Elf32_Ehdr->e_shoff,SEEK_SET)
-`  
+```c
+lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET)
+```    
 2. Calculate size of "Section header table"  
-`  
+```c  
 size=Elf32_e_shentsize * Elf32_e_shnum;
-`  
+```    
 3. Read "Section Header Table"  
-`
+```c
 read(fd,buf,size);
-`
+```  
 
 
 #### Read ELF Section
@@ -134,32 +134,33 @@ e_shnum is the number of section, and e_shentsize is size of section, unit is by
 ![Relation between Section Header table and Secion](https://github.com/unanao/Elfdbs/blob/master/document/img/section-header2section.png)
 
 Sysv ABI defination of section entry
-
-	typedef struct {
-	  Elf32_Word    sh_name;
-	  Elf32_Word    sh_type;
-	  Elf32_Word    sh_flags;
-	  Elf32_Addr    sh_addr;
-	  Elf32_Off     sh_offset;
-	  Elf32_Word    sh_size;
-	  Elf32_Word    sh_link;
-	  Elf32_Word    sh_info;
-	  Elf32_Word    sh_addralign;
-	  Elf32_Word    sh_entsize;
-	} Elf32_Shdr;
+```c
+typedef struct {
+	Elf32_Word    sh_name;
+	Elf32_Word    sh_type;
+	Elf32_Word    sh_flags;
+	Elf32_Addr    sh_addr;
+	Elf32_Off     sh_offset;
+	Elf32_Word    sh_size;
+	Elf32_Word    sh_link;
+	Elf32_Word    sh_info;
+	Elf32_Word    sh_addralign;
+	Elf32_Word    sh_entsize;
+} Elf32_Shdr;
+```
 
 
 Section header table is array of  Elf32_Shdr, number is e_shnum. We can tranverse the array to reade all sections
 
 ##### Read Section Header Table
 1. Define variable, store section header table  
-`
+```c
 Elf32_Shdr header[MAX];
-`  
+```    
 2. Jump to Section Header table  
-`
+```c
 lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
-`  
+```    
 3. Caculate size of Section header table.  
 We should considerate the align of cpu.  
 
@@ -170,19 +171,19 @@ else
 	size=Elf32_Shdr->sh_entsize;
 ```
 
-#### Read Section 
-
-
-	for (i = 0; i < Elf32_Ehdr->e_shnum; i++) {
-		  read(fd, &header[i], size);
-	}
+#### Read Section   
+```c
+for (i = 0; i < Elf32_Ehdr->e_shnum; i++) {
+	read(fd, &header[i], size);
+}
+```
 
 
 ## Write ELF to database
 1. Use mysql's longblob to store binary data  
-`
+```c
 CREATE table elf(id int,data longblob);
-`  
+```    
 2. escape the special strings
 for example: NUL(ASCII 0)、'\n'、'\r'、'\'’、'''、'" and Control-  
 ```c
