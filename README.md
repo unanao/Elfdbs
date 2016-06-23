@@ -44,7 +44,6 @@ Procedure to read ELF header:
 3. read ELF header to the buffer  
 	read(fd,buf,size);
 
-
 #### Read Program Header table
 Data structure of "program header table"
 
