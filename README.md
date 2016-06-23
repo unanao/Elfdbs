@@ -182,12 +182,12 @@ CREATE table elf(id int,data longblob);
 `  
 2. escape the special strings
 for example: NUL(ASCII 0)、'\n'、'\r'、'\'’、'''、'" and Control-  
-`
+```c
 *end++='\'';
 end+=mysql_real_escape_string(conn,end,buf,n);
 *end++='\'';
 *end++=')';
-`
+```
 
 
 ## Strip the ELF File
