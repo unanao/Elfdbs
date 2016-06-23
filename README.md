@@ -69,16 +69,19 @@ We can get size and offset from ELF Header
 
 Howto read "program header table"
 1. Jump to program header 
-
-	lseek(fd,Elf32_Ehdr->e_phoff,SEEK_SET)
+`
+lseek(fd,Elf32_Ehdr->e_phoff,SEEK_SET)
+`
 
 2. Calculate size of program header table
-
-	size=Elf32_e_phentsize*Elf32_e_phnum;
+`
+size=Elf32_e_phentsize*Elf32_e_phnum;
+`
 
 3. Read to buffer
-
-	read(fd,buf,size);
+`
+read(fd,buf,size);
+`
 
 #### Read "Section Header table"
 Data structure of "section header table"
@@ -103,16 +106,19 @@ Get size and offset from ELF header
 
 Procedure for reading "Section header table"
 1. Jump to Section header
-
-	lseek(fd,Elf32_Ehdr->e_shoff,SEEK_SET)
+`
+lseek(fd,Elf32_Ehdr->e_shoff,SEEK_SET)
+`
 
 2. Calculate size of "Section header table"
-
-	size=Elf32_e_shentsize*Elf32_e_shnum;
+`
+size=Elf32_e_shentsize*Elf32_e_shnum;
+`
 
 3. Read "Section Header Table"
-
-	read(fd,buf,size);
+`
+read(fd,buf,size);
+`
 
 
 #### Read ELF Section
@@ -148,13 +154,15 @@ Section header table is array of  Elf32_Shdr, number is e_shnum. We can tranvers
 
 ##### Read Section Header Table
 * Define variable, store section header table
-
-	Elf32_Shdr header[MAX];
+`
+Elf32_Shdr header[MAX];
+`
 
 
 * Jump to Section Header table
-
-	lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
+`
+lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
+`
 
 
 * Caculate size of Section header table.
