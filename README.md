@@ -34,19 +34,14 @@ The structure of "ELF header table"
 	} Elf32_Ehdr;
 
 
-Howto read ELF header
-1. Jump to begin of file header
-
+Procedure to read ELF header:  
+1. Jump to begin of file header  
 	lseek(fd,0,SEEK_SET);
 
-
-2. Calculate the size of ELF header
-
+2. Calculate the size of ELF header  
 	size = sizeof(Elf32_Ehdr);
 
-
-3. read ELF header to the buffer
-
+3. read ELF header to the buffer  
 	read(fd,buf,size);
 
 
