@@ -149,17 +149,15 @@ Sysv ABI defination of section entry
 Section header table is array of  Elf32_Shdr, number is e_shnum. We can tranverse the array to reade all sections
 
 ##### Read Section Header Table
-* Define variable, store section header table  
+1. Define variable, store section header table  
 `
 Elf32_Shdr header[MAX];
-`
-
-* Jump to Section Header table  
+`  
+2. Jump to Section Header table  
 `
 lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
-`
-
-* Caculate size of Section header table.  
+`  
+3. Caculate size of Section header table.  
 We should considerate the align of cpu.  
 `
   if(Elf32_Shdr->sh_entsize%2 ! =0)
@@ -167,7 +165,6 @@ We should considerate the align of cpu.
   else
         size=Elf32_Shdr->sh_entsize;
 `
-
 
 #### Read Section 
 
@@ -260,5 +257,4 @@ Comparison
 * Tan Long
 
 ## Acknowledgement
-Thanks to Wu Zhangjin, give us so much guidence.  
-His technical sebsite: [TinyLab] (http://tinylab.org/)
+Thanks to Wu Zhangjin, give us so much guidence, who founded technical sebsite: [TinyLab] (http://tinylab.org/)
