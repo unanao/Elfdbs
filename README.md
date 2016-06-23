@@ -155,15 +155,15 @@ typedef struct {
 Section header table is array of  Elf32_Shdr, number is e_shnum. We can tranverse the array to reade all sections
 
 ##### Read Section Header Table
-1. Define variable, store section header table  
+1.Define variable, store section header table  
 ```c
 Elf32_Shdr header[MAX];
 ```    
-2. Jump to Section Header table  
+2.Jump to Section Header table  
 ```c
 lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
 ```    
-3. Caculate size of Section header table.  
+3.Caculate size of Section header table.  
 We should considerate the align of cpu.  
 
 ```c
@@ -182,11 +182,11 @@ for (i = 0; i < Elf32_Ehdr->e_shnum; i++) {
 
 
 ## Write ELF to database
-1. Use mysql's longblob to store binary data  
+1.Use mysql's longblob to store binary data  
 ```c
 CREATE table elf(id int,data longblob);
 ```    
-2. escape the special strings
+2.escape the special strings
 for example: NUL(ASCII 0)、'\n'、'\r'、'\'’、'''、'" and Control-  
 ```c
 *end++='\'';
