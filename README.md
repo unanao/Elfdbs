@@ -75,11 +75,11 @@ Howto read "program header table"
 1. Jump to program header  
 ```c
 lseek(fd,Elf32_Ehdr->e_phoff,SEEK_SET)
-```  
+```
 2. Calculate size of program header table  
 ```c
 size=Elf32_e_phentsize * Elf32_e_phnum;
-```  
+```
 3. Read to buffer  
 ```c
 read(fd,buf,size);
