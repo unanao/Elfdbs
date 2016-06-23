@@ -1,5 +1,5 @@
 # ELF Database system
-In 2008, Elfdbs is a prouct for project of Lanzhou University.
+In 2008, Elfdbs is a prouct for project of innovation and entrepreneurship, Lanzhou University.
 
 ## Structure
 ![structure](https://github.com/unanao/Elfdbs/blob/master/document/12.png.png)
