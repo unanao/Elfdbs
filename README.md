@@ -71,6 +71,7 @@ We can get size and offset from ELF Header
 * e_phoff : offset of program header
 
 Howto read "program header table"  
+
 1. Jump to program header  
 ```c
 lseek(fd,Elf32_Ehdr->e_phoff,SEEK_SET)
