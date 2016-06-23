@@ -36,16 +36,14 @@ The structure of "ELF header table"
 
 Procedure to read ELF header:  
 1. Jump to begin of file header  
-
-	lseek(fd,0,SEEK_SET)
+` lseek(fd,0,SEEK_SET) `
 
 2. Calculate the size of ELF header  
 
 ` size = sizeof(Elf32_Ehdr) `
 
 3. read ELF header to the buffer  
-
-	read(fd,buf,size)
+` read(fd,buf,size) `
 
 #### Read Program Header table
 Data structure of "program header table"
