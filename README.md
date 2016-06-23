@@ -160,12 +160,12 @@ lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
 3. Caculate size of Section header table.  
 We should considerate the align of cpu.  
 
-`
+```c
 if(Elf32_Shdr->sh_entsize%2 ! =0)
 	size=Elf32_Shdr->sh_entsize+1;
 else
 	size=Elf32_Shdr->sh_entsize;
-`
+```
 
 #### Read Section 
 
