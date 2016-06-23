@@ -160,10 +160,10 @@ lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
 3. Caculate size of Section header table.  
 We should considerate the align of cpu.  
 `
-  if(Elf32_Shdr->sh_entsize%2 ! =0)
-		size=Elf32_Shdr->sh_entsize+1;
-  else
-        size=Elf32_Shdr->sh_entsize;
+if(Elf32_Shdr->sh_entsize%2 ! =0)
+	size=Elf32_Shdr->sh_entsize+1;
+else
+	size=Elf32_Shdr->sh_entsize;
 `
 
 #### Read Section 
@@ -175,19 +175,18 @@ We should considerate the align of cpu.
 
 
 ## Write ELF to database
-1. Use mysql's longblob to store binary data
-
-	CREATE table elf(id int,data longblob);
-
+1. Use mysql's longblob to store binary data  
+`
+CREATE table elf(id int,data longblob);
+`  
 2. escape the special strings
-for example: NUL(ASCII 0)、'\n'、'\r'、'\'’、'''、'" and Control-Z 
-
-
-
-        *end++='\'';
-        end+=mysql_real_escape_string(conn,end,buf,n);
-        *end++='\'';
-        *end++=')';
+for example: NUL(ASCII 0)、'\n'、'\r'、'\'’、'''、'" and Control-  
+`
+*end++='\'';
+end+=mysql_real_escape_string(conn,end,buf,n);
+*end++='\'';
+*end++=')';
+`
 
 
 ## Strip the ELF File
