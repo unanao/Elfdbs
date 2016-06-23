@@ -107,7 +107,7 @@ Procedure for reading "Section header table"
 `
 lseek(fd,Elf32_Ehdr->e_shoff,SEEK_SET)
 `  
-2. Calculate size of "Section header table"
+2. Calculate size of "Section header table"  
 `  
 size=Elf32_e_shentsize * Elf32_e_shnum;
 `  
@@ -149,26 +149,24 @@ Sysv ABI defination of section entry
 Section header table is array of  Elf32_Shdr, number is e_shnum. We can tranverse the array to reade all sections
 
 ##### Read Section Header Table
-* Define variable, store section header table
+* Define variable, store section header table  
 `
 Elf32_Shdr header[MAX];
 `
 
-
-* Jump to Section Header table
+* Jump to Section Header table  
 `
 lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET);
 `
 
-
-* Caculate size of Section header table.
-We should considerate the align of cpu.
-
-
-  if(Elf32_Shdr->sh_entsize%2!=0)
+* Caculate size of Section header table.  
+We should considerate the align of cpu.  
+`
+  if(Elf32_Shdr->sh_entsize%2 ! =0)
 		size=Elf32_Shdr->sh_entsize+1;
   else
         size=Elf32_Shdr->sh_entsize;
+`
 
 
 #### Read Section 
