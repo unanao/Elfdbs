@@ -40,8 +40,10 @@ Procedure to read ELF header:
 `
 lseek(fd,0,SEEK_SET)
 `
+
 2.Calculate the size of ELF header  
 ` size = sizeof(Elf32_Ehdr) `
+
 3.read ELF header to the buffer  
 ` read(fd,buf,size) `
 
