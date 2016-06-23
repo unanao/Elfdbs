@@ -102,18 +102,16 @@ Get size and offset from ELF header
 * e_shentsize and e_shnum : size 
 * e_shoff: offset
 
-Procedure for reading "Section header table"
-1. Jump to Section header
+Procedure for reading "Section header table"  
+1. Jump to Section header  
 `
 lseek(fd,Elf32_Ehdr->e_shoff,SEEK_SET)
-`
-
+`  
 2. Calculate size of "Section header table"
-`
-size=Elf32_e_shentsize*Elf32_e_shnum;
-`
-
-3. Read "Section Header Table"
+`  
+size=Elf32_e_shentsize * Elf32_e_shnum;
+`  
+3. Read "Section Header Table"  
 `
 read(fd,buf,size);
 `
