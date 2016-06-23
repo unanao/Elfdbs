@@ -117,7 +117,7 @@ lseek(fd, Elf32_Ehdr->e_shoff, SEEK_SET)
 ```c  
 size=Elf32_e_shentsize * Elf32_e_shnum;
 ```  
-1.Read "Section Header Table"  
+3.Read "Section Header Table"  
 ```c
 read(fd,buf,size);
 ```  
